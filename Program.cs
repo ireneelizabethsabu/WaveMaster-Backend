@@ -48,8 +48,7 @@ namespace WaveMaster_Backend
             .WithName("GetWeatherForecast")
             .WithOpenApi();
 
-            //SerialPortConfig spc = new SerialPortConfig();
-            //spc.SerialPortConfiguration();
+
             app.UseCors(o =>
             {
                 o.AllowAnyOrigin();
@@ -57,6 +56,10 @@ namespace WaveMaster_Backend
                 o.AllowAnyHeader();
             });
             app.UseAuthorization();
+
+            SerialPortConfig spc = new SerialPortConfig();
+            Task.Run(() => spc.SerialPortConfiguration());
+
             app.MapControllers();
             app.Run();
         }
