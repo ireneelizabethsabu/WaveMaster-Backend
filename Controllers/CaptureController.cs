@@ -10,39 +10,40 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class CaptureController : ControllerBase
     {
-        [HttpGet("data")]
-        public DataModel GetData()
+        [HttpGet("plotdata")]
+        public PlotDataModel GetPlotData()
         {
-            DataModel dataModel = new DataModel();
+            PlotDataModel dataModel = new PlotDataModel();
             dataModel.Timestamp = DateTime.Now;
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
+            //command to fetch plot data from mcb
             return dataModel;
         }
 
-        // GET api/<ConfigurationController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("signaldata")]
+        public SignalDataModel GetSignalData()
         {
-            return "value";
+            SignalDataModel dataModel = new SignalDataModel();
+            Random r = new Random();
+            dataModel.PeakToPeak = r.NextDouble();
+            dataModel.Frequency = r.Next(100, 1000);
+            //command to fetch signal data from mcb
+            return dataModel;
         }
 
-        // POST api/<ConfigurationController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        
+        [HttpPost("plotcommand")]
+        public void PostCommand([FromBody] string value)
         {
-        }
-
-        // PUT api/<ConfigurationController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<ConfigurationController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            Console.WriteLine(value);
+            if (value.Equals("START"))
+            {
+                //send command to start capturing
+            }else if (value.Equals("STOP"))
+            {
+                //send command to stop capturing
+            }
         }
     }
 }
