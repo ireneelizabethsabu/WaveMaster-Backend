@@ -50,6 +50,13 @@ namespace WaveMaster_Backend
 
             //SerialPortConfig spc = new SerialPortConfig();
             //spc.SerialPortConfiguration();
+            app.UseCors(o =>
+            {
+                o.AllowAnyOrigin();
+                o.AllowAnyMethod();
+                o.AllowAnyHeader();
+            });
+            app.UseAuthorization();
             app.MapControllers();
             app.Run();
         }
