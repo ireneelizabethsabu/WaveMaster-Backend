@@ -27,7 +27,6 @@ namespace WaveMaster_Backend.Controllers
 
         // POST api/<ConfigurationController>
         [HttpPost]
-<<<<<<< Updated upstream
         public void Post(ConenctionParamsModel value)
         {
             Console.WriteLine($"Port Name : {value.portName}");
@@ -35,11 +34,6 @@ namespace WaveMaster_Backend.Controllers
             Console.WriteLine($"Data Bit : {value.dataBit}");
             Console.WriteLine($"Baud Rate : {value.baudRate}");
             Console.WriteLine($"Parity : {value.parity}");
-=======
-        public void Post(Object value)
-        {
-            Console.WriteLine($"Port Name : {value}");
->>>>>>> Stashed changes
         }
 
         // PUT api/<ConfigurationController>/5
