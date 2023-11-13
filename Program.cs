@@ -24,7 +24,14 @@ namespace WaveMaster_Backend
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseCors(o =>
+            {
+                o.AllowAnyOrigin();
+                o.AllowAnyHeader();
+                o.AllowAnyMethod();
+            });
+
+            //app.UseHttpsRedirection();
 
             app.UseAuthorization();
 

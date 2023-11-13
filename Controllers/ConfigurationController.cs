@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
+using WaveMaster_Backend.ViewModels;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,7 +15,7 @@ namespace WaveMaster_Backend.Controllers
         public IEnumerable<string> GetPortName()
         {
             var ports = SerialPort.GetPortNames();
-            return new string[] { "value1", "value2" };
+            return ports;
         }
 
         // GET api/<ConfigurationController>/5
@@ -26,8 +27,13 @@ namespace WaveMaster_Backend.Controllers
 
         // POST api/<ConfigurationController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public void Post(ConenctionParamsModel value)
         {
+            Console.WriteLine($"Port Name : {value.portName}");
+            Console.WriteLine($"Stop Bit : {value.stopBit}");
+            Console.WriteLine($"Data Bit : {value.dataBit}");
+            Console.WriteLine($"Baud Rate : {value.baudRate}");
+            Console.WriteLine($"Parity : {value.parity}");
         }
 
         // PUT api/<ConfigurationController>/5
