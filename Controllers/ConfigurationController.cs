@@ -27,9 +27,7 @@ namespace WaveMaster_Backend.Controllers
             var ports = SerialPort.GetPortNames();
             return ports;
         }
-
-        
-
+              
         // POST api/<ConfigurationController>
         [HttpPost("connect")]
         public IActionResult PostConnect(ConenctionParamsModel value)
@@ -69,10 +67,10 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("disconnect")]
         public IActionResult PostDisconnect(ConenctionParamsModel value)
         {
-            
-
             try
             {
+                _sharedVariableService.serialPort.WriteLine(
+                    System.String.Format("STOP CONNECTION;"));
                 _sharedVariableService.serialPort.Close();
 
             }
