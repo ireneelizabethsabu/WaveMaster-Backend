@@ -1,4 +1,6 @@
 
+using Microsoft.EntityFrameworkCore;
+using WaveMaster_Backend.Models;
 using WaveMaster_Backend.Services;
 
 namespace WaveMaster_Backend
@@ -12,6 +14,9 @@ namespace WaveMaster_Backend
 
             // Add services to the container.
             builder.Services.AddAuthorization();
+
+            builder.Services.AddDbContext<WaveMasterDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")));
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
