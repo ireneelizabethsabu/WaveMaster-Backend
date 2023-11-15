@@ -47,13 +47,7 @@ namespace WaveMaster_Backend
             app.UseAuthorization();
 
             
-            app.UseCors(o =>
-            {
-                o.AllowAnyOrigin();
-                o.AllowAnyMethod();
-                o.AllowAnyHeader();
-            });
-            app.UseAuthorization();
+            
 
             app.MapControllers();
             app.Run();
