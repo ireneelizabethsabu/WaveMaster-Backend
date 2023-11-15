@@ -52,10 +52,8 @@ namespace WaveMaster_Backend.Controllers
             
             //command to fetch signal data from mcb
             _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET FREQUENCY;"));
-            _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET PEAKTOPEAK;"));
-
+                    System.String.Format("GET CAPTURE DATA;"));
+            
             while (true)
             {
                 try
@@ -81,26 +79,14 @@ namespace WaveMaster_Backend.Controllers
             Console.WriteLine(value);
             try
             {
-                if (value.Equals("START"))
-                {
-                    _sharedVariableService.serialPort.WriteLine(
-                        System.String.Format("START CAPTURE;"));
-                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
-                }
-                else if (value.Equals("STOP"))
-                {
-                    _sharedVariableService.serialPort.WriteLine(
-                         System.String.Format("STOP CAPTURE;"));
-                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
-
-                }
+                _sharedVariableService.serialPort.WriteLine(
+                         System.String.Format($"{value} CAPTURE;"));
+                return Ok("ConfigurationController : PostDisconnect() - command sent Successfully!");
             }
             catch (NullReferenceException ex)
             {
                 return StatusCode(500, $"CaptureController : PostCommand() - NULL REFERENCE EXCEPTION: {ex}");
             }
-
-            return StatusCode(500, $"CaptureController : PostCommand() - not received either START or STOP");
         }
     }
 }
