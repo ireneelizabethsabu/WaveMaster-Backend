@@ -1,4 +1,6 @@
 
+using WaveMaster_Backend.Services;
+
 namespace WaveMaster_Backend
 {
     public class Program
@@ -15,7 +17,11 @@ namespace WaveMaster_Backend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
+
             var app = builder.Build();
+
+            
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -64,8 +70,8 @@ namespace WaveMaster_Backend
             });
             app.UseAuthorization();
 
-            SerialPortConfig spc = new SerialPortConfig();
-            Task.Run(() => spc.SerialPortConfiguration());
+            //SerialPortConfig spc = new SerialPortConfig();
+            //Task.Run(() => spc.SerialPortConfiguration());
 
             app.MapControllers();
             app.Run();

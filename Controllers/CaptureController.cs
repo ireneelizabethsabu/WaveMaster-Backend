@@ -43,6 +43,7 @@ namespace WaveMaster_Backend.Controllers
             }else if (value.Equals("STOP"))
             {
                 //send command to stop capturing
+
             }
         }
     }

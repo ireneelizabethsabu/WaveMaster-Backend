@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
+using System.Net;
+using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -10,6 +12,14 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
+
+        private readonly ISharedVariableService _sharedVariableService;
+        
+        public ConfigurationController(ISharedVariableService sharedVariableService)
+        {
+            _sharedVariableService = sharedVariableService;
+        }
+
         // GET: api/<ConfigurationController>
         [HttpGet]
         public IEnumerable<string> GetPortName()
@@ -18,34 +28,63 @@ namespace WaveMaster_Backend.Controllers
             return ports;
         }
 
-        // GET api/<ConfigurationController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        
 
         // POST api/<ConfigurationController>
-        [HttpPost]
-        public void Post(ConenctionParamsModel value)
+        [HttpPost("connect")]
+        public IActionResult PostConnect(ConenctionParamsModel value)
         {
             Console.WriteLine($"Port Name : {value.portName}");
             Console.WriteLine($"Stop Bit : {value.stopBit}");
             Console.WriteLine($"Data Bit : {value.dataBit}");
             Console.WriteLine($"Baud Rate : {value.baudRate}");
             Console.WriteLine($"Parity : {value.parity}");
+
+            SerialPort _serialPort = new SerialPort();
+
+            // Allow the user to set the appropriate properties.
+            _serialPort.PortName = value.portName;
+            _serialPort.BaudRate = value.baudRate;
+            _serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), value.parity, true);
+            _serialPort.DataBits = value.dataBit;
+            _serialPort.StopBits = (StopBits)value.stopBit;
+            _serialPort.Handshake = (Handshake)Enum.Parse(typeof(Handshake), "None", true);
+
+            try
+            {
+                _serialPort.Open();
+                
+            }
+            catch(Exception ex) {
+                Console.WriteLine(ex);
+                return NotFound("Error");
+            }
+
+            _sharedVariableService.serialPort = _serialPort;
+            Thread readThread = new Thread(_sharedVariableService.Read);
+            readThread.Start();
+            return Ok();
         }
 
-        // PUT api/<ConfigurationController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPost("disconnect")]
+        public IActionResult PostDisconnect(ConenctionParamsModel value)
         {
+            
+
+            try
+            {
+                _sharedVariableService.serialPort.Close();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return NotFound(ex);
+            }
+
+            
+            return Ok();
         }
 
-        // DELETE api/<ConfigurationController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }
