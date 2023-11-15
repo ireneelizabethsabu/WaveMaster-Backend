@@ -51,7 +51,7 @@ namespace WaveMaster_Backend.Controllers
             try
             {
                 _serialPort.Open();
-                
+                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_sharedVariableService.DataReceivedHandler);
             }
             catch(Exception ex) {
                 Console.WriteLine(ex);
@@ -59,8 +59,8 @@ namespace WaveMaster_Backend.Controllers
             }
 
             _sharedVariableService.serialPort = _serialPort;
-            Thread readThread = new Thread(_sharedVariableService.Read);
-            readThread.Start();
+            //Thread readThread = new Thread(_sharedVariableService.Read);
+            //readThread.Start();
             return Ok();
         }
 
@@ -71,6 +71,7 @@ namespace WaveMaster_Backend.Controllers
             {
                 _sharedVariableService.serialPort.WriteLine(
                     System.String.Format("STOP CONNECTION;"));
+                _sharedVariableService.serialPort.DataReceived -= _sharedVariableService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
 
             }

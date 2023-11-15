@@ -37,14 +37,28 @@ namespace WaveMaster_Backend.Controllers
         {
             SignalDataModel dataModel = new SignalDataModel();
             Random r = new Random();
-            dataModel.PeakToPeak = r.NextDouble();
-            dataModel.Frequency = r.Next(100, 1000);
+            
             
             //command to fetch signal data from mcb
             _sharedVariableService.serialPort.WriteLine(
                     System.String.Format("GET FREQUENCY;"));
             _sharedVariableService.serialPort.WriteLine(
                     System.String.Format("GET PEAKTOPEAK;"));
+
+            while (true)
+            {
+                try
+                {
+                    string message = _sharedVariableService.serialPort.ReadLine();
+                    Console.WriteLine(message);
+                                        
+                    //logic to get data 
+                    dataModel.PeakToPeak = r.NextDouble();
+                    dataModel.Frequency = r.Next(100, 1000);
+                    break;
+                }
+                catch (TimeoutException) { }
+            }
 
             return dataModel;
         }
