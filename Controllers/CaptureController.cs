@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
+using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -10,6 +11,13 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class CaptureController : ControllerBase
     {
+        private readonly ISharedVariableService _sharedVariableService;
+
+        public CaptureController(ISharedVariableService sharedVariableService)
+        {
+            _sharedVariableService = sharedVariableService;
+        }
+
         [HttpGet("plotdata")]
         public PlotDataModel GetPlotData()
         {
@@ -18,6 +26,9 @@ namespace WaveMaster_Backend.Controllers
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
             //command to fetch plot data from mcb
+            _sharedVariableService.serialPort.WriteLine(
+                    System.String.Format("GET CAPTURE DATA;"));
+            
             return dataModel;
         }
 
@@ -28,7 +39,13 @@ namespace WaveMaster_Backend.Controllers
             Random r = new Random();
             dataModel.PeakToPeak = r.NextDouble();
             dataModel.Frequency = r.Next(100, 1000);
+            
             //command to fetch signal data from mcb
+            _sharedVariableService.serialPort.WriteLine(
+                    System.String.Format("GET FREQUENCY;"));
+            _sharedVariableService.serialPort.WriteLine(
+                    System.String.Format("GET PEAKTOPEAK;"));
+
             return dataModel;
         }
 
@@ -39,10 +56,13 @@ namespace WaveMaster_Backend.Controllers
             Console.WriteLine(value);
             if (value.Equals("START"))
             {
-                //send command to start capturing
-            }else if (value.Equals("STOP"))
+                _sharedVariableService.serialPort.WriteLine(
+                    System.String.Format("START CAPTURE;"));
+            }
+            else if (value.Equals("STOP"))
             {
-                //send command to stop capturing
+                _sharedVariableService.serialPort.WriteLine(
+                     System.String.Format("STOP CAPTURE;"));
 
             }
         }
