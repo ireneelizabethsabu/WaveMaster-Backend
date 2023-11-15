@@ -32,36 +32,34 @@ namespace WaveMaster_Backend.Controllers
                 Console.WriteLine(data);
 
                 // Work with the deserialized data
-                return Ok(data);
+                return Ok("GenerateController : Get() - " + data);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error reading JSON from file: {ex.Message}");
+                return StatusCode(500, $"GenerateController : Get() - Error reading JSON from file: {ex}");
             }
         }
 
         [HttpPost]
         public IActionResult Post([FromBody] SignalDataModel signalData)
         {
-            Console.WriteLine(signalData.SignalType);
-            Console.WriteLine(signalData.Frequency);
-            Console.WriteLine(signalData.PeakToPeak);
-
-            
-            //_sharedVariableService.serialPort.WriteLine(String.Format("GENERATE {0} {1} {2}", signalData.SignalType, signalData.Frequency, signalData.PeakToPeak));
-            
+            Console.WriteLine(signalData);
             string jsonString = JsonSerializer.Serialize(signalData);
             string filePath = "settings.json";
 
             try
             {
+                _sharedVariableService.serialPort.WriteLine(String.Format("GENERATE {0} {1} {2}", signalData.SignalType, signalData.Frequency, signalData.PeakToPeak));
                 // Write the JSON string to the file
                 System.IO.File.WriteAllText(filePath, jsonString);
-                return Ok("JSON data has been written to the file.");
+                return Ok("GenerateController : Post() -JSON data has been written to the file.");
+            }catch(NullReferenceException ex)
+            {
+                return StatusCode(500, $"GenerateController : Post() - NULL REFERENCE EXCEPTION - {ex}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error writing JSON to file: {ex.Message}");
+                return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex}");
             }
         }
     }

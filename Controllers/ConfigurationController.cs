@@ -50,18 +50,19 @@ namespace WaveMaster_Backend.Controllers
 
             try
             {
-                _serialPort.Open();
-                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_sharedVariableService.DataReceivedHandler);
+                _serialPort.Open(); 
             }
             catch(Exception ex) {
                 Console.WriteLine(ex);
-                return NotFound("Error");
+                return StatusCode(500, $"ConfigurationController : PostConnect() : {ex}");
             }
 
-            _sharedVariableService.serialPort = _serialPort;
+
             //Thread readThread = new Thread(_sharedVariableService.Read);
             //readThread.Start();
-            return Ok();
+            _serialPort.DataReceived += new SerialDataReceivedEventHandler(_sharedVariableService.DataReceivedHandler);
+            _sharedVariableService.serialPort = _serialPort;
+            return Ok("ConfigurationController : PostConnect() - Connected Successfully!");
         }
 
         [HttpPost("disconnect")]
@@ -73,17 +74,18 @@ namespace WaveMaster_Backend.Controllers
                     System.String.Format("STOP CONNECTION;"));
                 _sharedVariableService.serialPort.DataReceived -= _sharedVariableService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
-
+                return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
+            }
+            catch (NullReferenceException ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, $"ConfigurationController : PostDisconnect() - NULL REFERENCE EXCEPTION: {ex}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return NotFound(ex);
-            }
-
-            
-            return Ok();
+                return StatusCode(500, $"ConfigurationController : PostDisconnect() : {ex}");
+            }            
         }
-
     }
 }

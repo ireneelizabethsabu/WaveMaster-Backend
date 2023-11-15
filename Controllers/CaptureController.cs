@@ -25,9 +25,20 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Timestamp = DateTime.Now;
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
-            //command to fetch plot data from mcb
-            _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET CAPTURE DATA;"));
+            try
+            {
+                
+                    _sharedVariableService.serialPort.WriteLine(
+                        System.String.Format("GET CAPTURE DATA;"));
+            }catch(NullReferenceException ex)
+            {
+                Console.WriteLine(ex);
+
+            }catch(Exception ex) 
+            {
+                Console.WriteLine(ex);
+            }
+            
             
             return dataModel;
         }
@@ -65,20 +76,31 @@ namespace WaveMaster_Backend.Controllers
 
         
         [HttpPost("plotcommand")]
-        public void PostCommand([FromBody] string value)
+        public IActionResult PostCommand([FromBody] string value)
         {
             Console.WriteLine(value);
-            if (value.Equals("START"))
+            try
             {
-                _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("START CAPTURE;"));
-            }
-            else if (value.Equals("STOP"))
-            {
-                _sharedVariableService.serialPort.WriteLine(
-                     System.String.Format("STOP CAPTURE;"));
+                if (value.Equals("START"))
+                {
+                    _sharedVariableService.serialPort.WriteLine(
+                        System.String.Format("START CAPTURE;"));
+                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
+                }
+                else if (value.Equals("STOP"))
+                {
+                    _sharedVariableService.serialPort.WriteLine(
+                         System.String.Format("STOP CAPTURE;"));
+                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
 
+                }
             }
+            catch (NullReferenceException ex)
+            {
+                return StatusCode(500, $"CaptureController : PostCommand() - NULL REFERENCE EXCEPTION: {ex}");
+            }
+
+            return StatusCode(500, $"CaptureController : PostCommand() - not received either START or STOP");
         }
     }
 }
