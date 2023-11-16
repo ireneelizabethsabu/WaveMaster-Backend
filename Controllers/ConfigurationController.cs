@@ -54,6 +54,7 @@ namespace WaveMaster_Backend.Controllers
             }
 
             _sharedVariableService.serialPort = _serialPort;
+
             return Ok(new { message = "ConfigurationController : PostConnect() - Connected Successfully!" });
         }
 
@@ -71,7 +72,7 @@ namespace WaveMaster_Backend.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, $"ConfigurationController : PostDisconnect() : {ex.Message}");
             }
-            return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
+            return Ok(new { message = "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!" });
         }
     }
 }

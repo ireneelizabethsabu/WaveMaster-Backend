@@ -37,15 +37,16 @@ namespace WaveMaster_Backend.Services
                         SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
-            string indata = sp.ReadExisting();
+            string indata = sp.ReadTo("\r");
             Console.WriteLine("Data Received:");
-            Console.Write(indata);
+            Console.WriteLine(indata);
             serialPort.DiscardInBuffer();
         }
 
         public void SendData(string command)
         {
             try 
+
             { 
                 serialPort.WriteLine(command);
                 serialPort.DiscardOutBuffer();
