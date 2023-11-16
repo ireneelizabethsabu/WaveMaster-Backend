@@ -25,21 +25,8 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Timestamp = DateTime.Now;
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
-            try
-            {
-                
-                    //_sharedVariableService.serialPort.WriteLine(
-                    //    System.String.Format("GET CAPTURE DATA;"));
-            }catch(NullReferenceException ex)
-            {
-                Console.WriteLine(ex);
 
-            }catch(Exception ex) 
-            {
-                Console.WriteLine(ex);
-            }
-            
-            
+            _sharedVariableService.SendData("GET CAPTURE DATA;");        
             return dataModel;
         }
 
@@ -49,13 +36,8 @@ namespace WaveMaster_Backend.Controllers
             SignalDataModel dataModel = new SignalDataModel();
             Random r = new Random();
             
+            _sharedVariableService.SendData("GET CAPTURE DATA;");
             
-            //command to fetch signal data from mcb
-            _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET FREQUENCY;"));
-            _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET PEAKTOPEAK;"));
-
             while (true)
             {
                 try
@@ -78,30 +60,9 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-            Console.WriteLine(value);
-            try
-            {
-                if (value.Equals("START"))
-                {
-                    //_sharedVariableService.serialPort.WriteLine(
-                    //    System.String.Format("START CAPTURE;"));
-                    return Ok(new { message = "ConfigurationController : PostDisconnect() - Connection Connected Successfully!" });
-                }
-                else if (value.Equals("STOP"))
-                {
-                    //_sharedVariableService.serialPort.WriteLine(
-                    //     System.String.Format("STOP CAPTURE;"));
-                    //var msg = new { "message" : "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!"};
-                    return Ok(new{ message = "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!" });
 
-                }
-            }
-            catch (NullReferenceException ex)
-            {
-                return StatusCode(500, $"CaptureController : PostCommand() - NULL REFERENCE EXCEPTION: {ex}");
-            }
-
-            return StatusCode(500, $"CaptureController : PostCommand() - not received either START or STOP");
+            _sharedVariableService.SendData($"{value} CAPTURE;");           
+            return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
     }
 }

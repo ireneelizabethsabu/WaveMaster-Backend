@@ -21,7 +21,6 @@ namespace WaveMaster_Backend
             builder.Services.AddDbContext<WaveMasterDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")));
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -30,9 +29,6 @@ namespace WaveMaster_Backend
             builder.Services.AddSignalR();
 
             var app = builder.Build();
-
-            
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -48,12 +44,7 @@ namespace WaveMaster_Backend
             });
 
             //app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-            
-            
-
             app.MapControllers();
             app.MapHub<PlotDataHub>("/plotValue");
             app.Run();

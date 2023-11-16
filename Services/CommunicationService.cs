@@ -9,7 +9,10 @@ namespace WaveMaster_Backend.Services
         public void DataReceivedHandler(
                         object sender,
                         SerialDataReceivedEventArgs e);
-        
+
+        public void SendData(string command);
+
+
     }
     public class CommunicationService : ISharedVariableService
     {
@@ -37,7 +40,20 @@ namespace WaveMaster_Backend.Services
             string indata = sp.ReadExisting();
             Console.WriteLine("Data Received:");
             Console.Write(indata);
-            Console.WriteLine(indata);
+            serialPort.DiscardInBuffer();
+        }
+
+        public void SendData(string command)
+        {
+            try 
+            { 
+                serialPort.Write(command);
+                serialPort.DiscardOutBuffer();
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+                return;
+            }            
         }
     }
 }

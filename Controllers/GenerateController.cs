@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WaveMaster_Backend.Services;
@@ -21,14 +21,12 @@ namespace WaveMaster_Backend.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            string filePath = "settings.json";
             try
             {
-               
-                string filePath = "settings.json";
                 string jsonString = System.IO.File.ReadAllText(filePath);
-
-                // Deserialize the JSON string to an object
                 var data = JsonSerializer.Deserialize<dynamic>(jsonString);
+
                 Console.WriteLine(data);
 
                 // Work with the deserialized data
@@ -43,24 +41,23 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] SignalDataModel signalData)
         {
-            Console.WriteLine(signalData);
             string jsonString = JsonSerializer.Serialize(signalData);
             string filePath = "settings.json";
-
+            _sharedVariableService.SendData($"GENERATE {signalData.SignalType} {signalData.Frequency} {signalData.PeakToPeak};");
             try
             {
-                _sharedVariableService.serialPort.WriteLine(String.Format("GENERATE {0} {1} {2}", signalData.SignalType, signalData.Frequency, signalData.PeakToPeak));
-                // Write the JSON string to the file
-                System.IO.File.WriteAllText(filePath, jsonString);
-                return Ok("GenerateController : Post() -JSON data has been written to the file.");
-            }catch(NullReferenceException ex)
+                System.IO.File.WriteAllText(filePath, jsonString); 
+            }catch(IOException ex)
             {
-                return StatusCode(500, $"GenerateController : Post() - NULL REFERENCE EXCEPTION - {ex}");
+                Console.WriteLine(ex);
+                return StatusCode(500, $"GenerateController : Post() - {ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex}");
+                Console.WriteLine(ex);
+                return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex.Message}");
             }
+            return Ok("GenerateController : Post() -JSON data has been written to the file.");
         }
     }
 }

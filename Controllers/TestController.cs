@@ -18,23 +18,10 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost]
         public IActionResult TestComponent([FromBody] string value)
         {
-            try
-            {
 
-                //Console.WriteLine(String.Format(value));
-                _sharedVariableService.serialPort.WriteLine(String.Format(value));
-                return Ok("TestController : TestComponent() - Command send Successfully!");
-            }
-            catch (NullReferenceException ex)
-            {
-                return StatusCode(500, $"TestController : TestComponent() - NULL REFERENCE EXCEPTION - {ex}");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"TestController : TestComponent() - {ex}");
-            }
-
-
+            Console.WriteLine(String.Format(value));
+            _sharedVariableService.SendData(value);
+            return Ok(new { message = "TestController : TestComponent() - Test data send success"});
         }
     }
 }
