@@ -46,11 +46,11 @@ namespace WaveMaster_Backend.Services
         public void SendData(string command)
         {
             try 
-            {
-                serialPort.Write(command);
+
+            { 
+                serialPort.WriteLine(command);
                 serialPort.DiscardOutBuffer();
-            }
-            catch(Exception ex)
+            }catch(Exception ex)
             {
                 Console.WriteLine(ex);
                 return;
