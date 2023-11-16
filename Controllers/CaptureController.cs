@@ -25,6 +25,7 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Timestamp = DateTime.Now;
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
+
             _sharedVariableService.SendData("GET CAPTURE DATA;");        
             return dataModel;
         }
@@ -59,8 +60,9 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
+
             _sharedVariableService.SendData($"{value} CAPTURE;");           
-            return Ok("ConfigurationController : PostDisconnect() - command sent Successfully!");
+            return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
     }
 }

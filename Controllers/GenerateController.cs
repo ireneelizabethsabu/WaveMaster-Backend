@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WaveMaster_Backend.Services;
@@ -26,7 +26,11 @@ namespace WaveMaster_Backend.Controllers
             {
                 string jsonString = System.IO.File.ReadAllText(filePath);
                 var data = JsonSerializer.Deserialize<dynamic>(jsonString);
-                return Ok("GenerateController : Get() - " + data);
+
+                Console.WriteLine(data);
+
+                // Work with the deserialized data
+                return Ok(data);
             }
             catch (Exception ex)
             {

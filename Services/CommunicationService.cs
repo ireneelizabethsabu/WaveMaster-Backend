@@ -40,7 +40,7 @@ namespace WaveMaster_Backend.Services
             string indata = sp.ReadExisting();
             Console.WriteLine("Data Received:");
             Console.Write(indata);
-            serialPort.DiscardOutBuffer();
+            serialPort.DiscardInBuffer();
         }
 
         public void SendData(string command)
