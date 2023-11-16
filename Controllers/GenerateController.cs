@@ -57,7 +57,7 @@ namespace WaveMaster_Backend.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex.Message}");
             }
-            return Ok("GenerateController : Post() -JSON data has been written to the file.");
+            return Ok(new { message = "GenerateController : Post() -JSON data has been written to the file." });
         }
     }
 }
