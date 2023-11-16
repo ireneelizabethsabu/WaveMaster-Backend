@@ -32,7 +32,7 @@ namespace WaveMaster_Backend.Controllers
                 Console.WriteLine(data);
 
                 // Work with the deserialized data
-                return Ok("GenerateController : Get() - " + data);
+                return Ok(data);
             }
             catch (Exception ex)
             {

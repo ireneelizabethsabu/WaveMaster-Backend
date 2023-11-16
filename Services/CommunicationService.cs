@@ -37,6 +37,7 @@ namespace WaveMaster_Backend.Services
             string indata = sp.ReadExisting();
             Console.WriteLine("Data Received:");
             Console.Write(indata);
+            Console.WriteLine(indata);
         }
     }
 }
