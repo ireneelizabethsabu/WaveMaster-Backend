@@ -12,12 +12,13 @@ namespace WaveMaster_Backend.TimerFunctions
         {
             _action = action;
             _autoResetEvent = new AutoResetEvent(false);
-            _timer = new Timer(Execute, _autoResetEvent, 1000, 2000);
+            _timer = new Timer(Execute, _autoResetEvent, 1, 2);
             TimerStarted = DateTime.Now;
         }
         public void Execute(object? stateInfo)
         {
             _action();
+            Console.WriteLine(DateTime.Now);
             if ((DateTime.Now - TimerStarted).TotalSeconds > 600)
             {
                 _timer.Dispose();

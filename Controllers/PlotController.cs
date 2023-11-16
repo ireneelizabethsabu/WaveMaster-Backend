@@ -20,6 +20,7 @@ namespace WaveMaster_Backend.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            Console.WriteLine(DateTime.Now);
             Random r = new Random();
             var timerManager = new TimerManager(() => _hub.Clients.All.SendAsync("transferPlotData", new { voltage = r.NextDouble(), timestamp = DateTime.Now }));
 
