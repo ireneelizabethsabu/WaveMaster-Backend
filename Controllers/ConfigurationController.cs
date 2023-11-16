@@ -66,7 +66,7 @@ namespace WaveMaster_Backend.Controllers
         }
 
         [HttpPost("disconnect")]
-        public IActionResult PostDisconnect(ConenctionParamsModel value)
+        public IActionResult PostDisconnect()
         {
             try
             {

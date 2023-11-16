@@ -20,6 +20,8 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
+
+                //Console.WriteLine(String.Format(value));
                 _sharedVariableService.serialPort.WriteLine(String.Format(value));
                 return Ok("TestController : TestComponent() - Command send Successfully!");
             }

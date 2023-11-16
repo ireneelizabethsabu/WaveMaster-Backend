@@ -28,8 +28,8 @@ namespace WaveMaster_Backend.Controllers
             try
             {
                 
-                    _sharedVariableService.serialPort.WriteLine(
-                        System.String.Format("GET CAPTURE DATA;"));
+                    //_sharedVariableService.serialPort.WriteLine(
+                    //    System.String.Format("GET CAPTURE DATA;"));
             }catch(NullReferenceException ex)
             {
                 Console.WriteLine(ex);
@@ -83,15 +83,16 @@ namespace WaveMaster_Backend.Controllers
             {
                 if (value.Equals("START"))
                 {
-                    _sharedVariableService.serialPort.WriteLine(
-                        System.String.Format("START CAPTURE;"));
-                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
+                    //_sharedVariableService.serialPort.WriteLine(
+                    //    System.String.Format("START CAPTURE;"));
+                    return Ok(new { message = "ConfigurationController : PostDisconnect() - Connection Connected Successfully!" });
                 }
                 else if (value.Equals("STOP"))
                 {
-                    _sharedVariableService.serialPort.WriteLine(
-                         System.String.Format("STOP CAPTURE;"));
-                    return Ok("ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!");
+                    //_sharedVariableService.serialPort.WriteLine(
+                    //     System.String.Format("STOP CAPTURE;"));
+                    //var msg = new { "message" : "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!"};
+                    return Ok(new{ message = "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!" });
 
                 }
             }
