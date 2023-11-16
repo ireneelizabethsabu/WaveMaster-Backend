@@ -54,7 +54,7 @@ namespace WaveMaster_Backend.Controllers
             }
 
             _sharedVariableService.serialPort = _serialPort;
-            return Ok("ConfigurationController : PostConnect() - Connected Successfully!");
+            return Ok(new { message = "ConfigurationController : PostConnect() - Connected Successfully!" });
         }
 
         [HttpPost("disconnect")]
