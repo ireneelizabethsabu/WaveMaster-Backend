@@ -43,7 +43,7 @@ namespace WaveMaster_Backend.Controllers
         {
             string jsonString = JsonSerializer.Serialize(signalData);
             string filePath = "settings.json";
-            _sharedVariableService.SendData($"GENERATE {signalData.SignalType} {signalData.Frequency} {signalData.PeakToPeak};");
+            _sharedVariableService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
             try
             {
                 System.IO.File.WriteAllText(filePath, jsonString); 
@@ -58,6 +58,14 @@ namespace WaveMaster_Backend.Controllers
                 return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex.Message}");
             }
             return Ok(new { message = "GenerateController : Post() -JSON data has been written to the file." });
+        }
+
+        [HttpPost("stopGenerate")]
+        public IActionResult PostStopGenerate()
+        {
+            
+            _sharedVariableService.SendData($"GENERATE STOP;");
+            return Ok(new { message = "GenerateController : PostStopGenerate() - success." });
         }
     }
 }
