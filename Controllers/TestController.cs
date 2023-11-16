@@ -18,9 +18,10 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost]
         public IActionResult TestComponent([FromBody] string value)
         {
+
             Console.WriteLine(String.Format(value));
             _sharedVariableService.SendData(value);
-            return Ok("TestController : TestComponent() - Test data send success");
+            return Ok(new { message = "TestController : TestComponent() - Test data send success"});
         }
     }
 }

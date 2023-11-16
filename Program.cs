@@ -1,5 +1,7 @@
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
 using WaveMaster_Backend.Services;
 
@@ -10,6 +12,7 @@ namespace WaveMaster_Backend
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            //CreateHostBuilder(args).Build().Run();
             builder.Services.AddControllers();
 
             // Add services to the container.
@@ -22,6 +25,8 @@ namespace WaveMaster_Backend
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
+
+            builder.Services.AddSignalR();
 
             var app = builder.Build();
             // Configure the HTTP request pipeline.
@@ -41,7 +46,9 @@ namespace WaveMaster_Backend
             //app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
+            app.MapHub<PlotDataHub>("/plotValue");
             app.Run();
         }
+        
     }
 }
