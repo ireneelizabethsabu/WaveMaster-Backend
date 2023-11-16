@@ -18,7 +18,7 @@ namespace WaveMaster_Backend.TimerFunctions
         public void Execute(object? stateInfo)
         {
             _action();
-            Console.WriteLine(DateTime.Now);
+            //Console.WriteLine(DateTime.Now);
             if ((DateTime.Now - TimerStarted).TotalSeconds > 600)
             {
                 _timer.Dispose();
