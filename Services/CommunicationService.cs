@@ -47,7 +47,7 @@ namespace WaveMaster_Backend.Services
         {
             try 
             { 
-                serialPort.Write(command);
+                serialPort.WriteLine(command);
                 serialPort.DiscardOutBuffer();
             }catch(Exception ex)
             {
