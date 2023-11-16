@@ -25,21 +25,7 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Timestamp = DateTime.Now;
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
-            try
-            {
-                
-                    _sharedVariableService.serialPort.WriteLine(
-                        System.String.Format("GET CAPTURE DATA;"));
-            }catch(NullReferenceException ex)
-            {
-                Console.WriteLine(ex);
-
-            }catch(Exception ex) 
-            {
-                Console.WriteLine(ex);
-            }
-            
-            
+            _sharedVariableService.SendData("GET CAPTURE DATA;");        
             return dataModel;
         }
 
@@ -49,10 +35,7 @@ namespace WaveMaster_Backend.Controllers
             SignalDataModel dataModel = new SignalDataModel();
             Random r = new Random();
             
-            
-            //command to fetch signal data from mcb
-            _sharedVariableService.serialPort.WriteLine(
-                    System.String.Format("GET CAPTURE DATA;"));
+            _sharedVariableService.SendData("GET CAPTURE DATA;");
             
             while (true)
             {
@@ -76,17 +59,8 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-            Console.WriteLine(value);
-            try
-            {
-                _sharedVariableService.serialPort.WriteLine(
-                         System.String.Format($"{value} CAPTURE;"));
-                return Ok("ConfigurationController : PostDisconnect() - command sent Successfully!");
-            }
-            catch (NullReferenceException ex)
-            {
-                return StatusCode(500, $"CaptureController : PostCommand() - NULL REFERENCE EXCEPTION: {ex}");
-            }
+            _sharedVariableService.SendData($"{value} CAPTURE;");           
+            return Ok("ConfigurationController : PostDisconnect() - command sent Successfully!");
         }
     }
 }
