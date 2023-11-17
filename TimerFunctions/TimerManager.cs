@@ -12,7 +12,7 @@ namespace WaveMaster_Backend.TimerFunctions
         {
             _action = action;
             _autoResetEvent = new AutoResetEvent(false);
-            _timer = new Timer(Execute, _autoResetEvent, 1, 2);
+            _timer = new Timer(Execute, _autoResetEvent, 1, 1);
             TimerStarted = DateTime.Now;
         }
         public void Execute(object? stateInfo)
