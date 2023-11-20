@@ -12,10 +12,12 @@ namespace WaveMaster_Backend.Controllers
     {
 
         private readonly ISharedVariableService _sharedVariableService;
+        private readonly IReadService _readService;
         
-        public ConfigurationController(ISharedVariableService sharedVariableService)
+        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
         {
             _sharedVariableService = sharedVariableService;
+            _readService = readService;
         }
 
         [HttpGet]
@@ -45,7 +47,7 @@ namespace WaveMaster_Backend.Controllers
             _serialPort.WriteTimeout = 500;
             try
             {
-                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_sharedVariableService.DataReceivedHandler);
+                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_readService.DataReceivedHandler);
                 _serialPort.Open(); 
             }
             catch(Exception ex) {
@@ -64,7 +66,7 @@ namespace WaveMaster_Backend.Controllers
             _sharedVariableService.SendData("STOP CONNECTION;");
             try
             {
-                _sharedVariableService.serialPort.DataReceived -= _sharedVariableService.DataReceivedHandler;
+                _sharedVariableService.serialPort.DataReceived -= _readService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
             }
             catch (Exception ex)

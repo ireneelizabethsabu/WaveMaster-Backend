@@ -25,7 +25,8 @@ namespace WaveMaster_Backend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddScoped<ISharedVariableService, CommunicationService>();
+            builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
+            builder.Services.AddScoped<IReadService, ReadService>();
 
             builder.Services.AddSignalR();
 
@@ -44,11 +45,11 @@ namespace WaveMaster_Backend
                 o.AllowAnyMethod();
             });
 
-            //Log.Logger = new LoggerConfiguration()
-            //   .MinimumLevel.Debug()
-            //   .WriteTo.Console()
-            //   .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
-            //   .CreateLogger();
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .WriteTo.Console()
+               .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
+               .CreateLogger();
 
             //Log.Information("Hello, world!");
 
