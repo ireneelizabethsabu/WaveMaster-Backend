@@ -65,5 +65,13 @@ namespace WaveMaster_Backend.Controllers
             _sharedVariableService.SendData($"{value} CAPTURE;");           
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
+
+        [HttpPost("rate")]
+        public IActionResult PostRate([FromBody] int rate)
+        {
+            Console.WriteLine(rate);
+            _sharedVariableService.DataAcquisitionRate = rate;
+            return Ok(new { message = "ConfigurationController : PostRate() -  Successful!" });
+        }
     }
 }
