@@ -27,6 +27,7 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Voltage = r.NextDouble();
 
             _sharedVariableService.SendData("GET CAPTURE DATA;");        
+            
             return dataModel;
         }
 
