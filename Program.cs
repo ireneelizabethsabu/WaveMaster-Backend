@@ -25,7 +25,7 @@ namespace WaveMaster_Backend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
+            builder.Services.AddScoped<ISharedVariableService, CommunicationService>();
 
             builder.Services.AddSignalR();
 
@@ -44,28 +44,28 @@ namespace WaveMaster_Backend
                 o.AllowAnyMethod();
             });
 
-            Log.Logger = new LoggerConfiguration()
-               .MinimumLevel.Debug()
-               .WriteTo.Console()
-               .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
-               .CreateLogger();
+            //Log.Logger = new LoggerConfiguration()
+            //   .MinimumLevel.Debug()
+            //   .WriteTo.Console()
+            //   .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
+            //   .CreateLogger();
 
-            Log.Information("Hello, world!");
+            //Log.Information("Hello, world!");
 
-            int a = 10, b = 0;
-            try
-            {
-                Log.Debug("Dividing {A} by {B}", a, b);
-                Console.WriteLine(a / b);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Something went wrong");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            //int a = 10, b = 0;
+            //try
+            //{
+            //    Log.Debug("Dividing {A} by {B}", a, b);
+            //    Console.WriteLine(a / b);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log.Error(ex, "Something went wrong");
+            //}
+            //finally
+            //{
+            //    Log.CloseAndFlush();
+            //}
 
             //app.UseHttpsRedirection();
             app.UseAuthorization();
