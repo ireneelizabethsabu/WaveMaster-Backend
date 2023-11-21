@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Serilog;
+using System;
 using System.IO.Ports;
+using System.Net.Sockets;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
 
@@ -8,29 +10,70 @@ namespace WaveMaster_Backend.Services
 {
     public interface IReadService
     {
-        public void DataReceivedHandler(
+        void Subscribe(IObserver<List<PlotData>> observer, string name = "");
+        void Unsubscribe(IObserver<List<PlotData>> observer);
+
+        void DataReceivedHandler(
                         object sender,
                         SerialDataReceivedEventArgs e);
     }
-
-    public class ReadService : IReadService
+    public class ReadService : IObservable<List<PlotData>>,IReadService
     {
         private readonly IHubContext<PlotDataHub> _hub;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         public string ReceivedString { get; set; } = String.Empty;
         public string Mode { get; set; } = "CAPTURE";
+        
         List<PlotData> dataStore = new List<PlotData>();
-        public ReadService(
-            IServiceScopeFactory serviceScopeFactory
-            , IHubContext<PlotDataHub> hub)
-        {
+        List<IObserver<List<PlotData>>> observers;
 
+        public ReadService(IHubContext<PlotDataHub> hub)
+        {
             //_context = context;
             _hub = hub;
-            _serviceScopeFactory = serviceScopeFactory;
+            observers = new List<IObserver<List<PlotData>>>();
+        }
+        private class Unsubscriber : IDisposable
+        {
+            private List<IObserver<List<PlotData>>> _observers;
+            private IObserver<List<PlotData>> _observer;
+
+            public Unsubscriber(List<IObserver<List<PlotData>>> observers, IObserver<List<PlotData>> observer)
+            {
+                this._observers = observers;
+                this._observer = observer;
+            }
+
+            public void Dispose()
+            {
+                if (! (_observer == null)) _observers.Remove(_observer);
+            }
         }
 
-        public async void DataReceivedHandler(
+        public void Subscribe(IObserver<List<PlotData>> observer,string name = "")
+        {
+            Console.WriteLine(name);
+            if (!observers.Contains(observer))
+            {
+                observers.Add(observer);
+            }
+        }
+
+        public void Unsubscribe(IObserver<List<PlotData>> observer)
+        {
+            observers.Remove(observer);
+        }
+        public IDisposable Subscribe(IObserver<List<PlotData>> observer)
+        {
+            if (! observers.Contains(observer))
+                observers.Add(observer);
+
+            return new Unsubscriber(observers, observer);
+        }
+
+        
+
+        public void DataReceivedHandler(
                         object sender,
                         SerialDataReceivedEventArgs e)
         {
@@ -56,8 +99,8 @@ namespace WaveMaster_Backend.Services
                     // Task.Run(() => WriteToDB(dataStore,_serviceScopeFactory));
 
                     List<PlotData> points = new List<PlotData>(dataStore);
-                    await WriteToDB(points, _serviceScopeFactory);
-
+                    //await WriteToDB(points, _serviceScopeFactory);
+                    NotifyObservers();
                     dataStore.Clear();
                 }
 
@@ -68,6 +111,15 @@ namespace WaveMaster_Backend.Services
                 Console.WriteLine("Data Received : {0}", ReceivedString);
                 ReceivedString = String.Empty;
                 //serialPort.DiscardInBuffer();
+            }
+        }
+
+        public void NotifyObservers()
+        {
+            foreach (var observer in observers)
+            {
+                //By Calling the Update method, we are sending notifications to observers
+                observer.OnNext(dataStore);
             }
         }
         public async Task WriteToDB(List<PlotData> dataStore, IServiceScopeFactory serviceScopeFactory)

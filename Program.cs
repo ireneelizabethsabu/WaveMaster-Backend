@@ -1,7 +1,10 @@
 
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Collections.Generic;
+using System;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
 using WaveMaster_Backend.Services;
@@ -26,7 +29,8 @@ namespace WaveMaster_Backend
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
-            builder.Services.AddScoped<IReadService, ReadService>();
+            builder.Services.AddSingleton<IReadService, ReadService>();
+            builder.Services.AddSingleton<IObserver<List<PlotData>>, DbObserver>();
 
             builder.Services.AddSignalR();
 
@@ -50,6 +54,8 @@ namespace WaveMaster_Backend
                .WriteTo.Console()
                .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
                .CreateLogger();
+
+            
 
             //Log.Information("Hello, world!");
 
