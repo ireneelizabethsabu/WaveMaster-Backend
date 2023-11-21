@@ -23,15 +23,14 @@ namespace WaveMaster_Backend
             builder.Services.AddAuthorization();
 
             builder.Services.AddDbContext<WaveMasterDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")), ServiceLifetime.Singleton);
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
-            builder.Services.AddSingleton<IReadService, ReadService>();
-            builder.Services.AddSingleton<IObserver<List<PlotData>>, DbObserver>();
-
+            builder.Services.AddScoped<IReadService, ReadService>();
+        
             builder.Services.AddSignalR();
 
             var app = builder.Build();
@@ -55,7 +54,7 @@ namespace WaveMaster_Backend
                .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
                .CreateLogger();
 
-            
+
 
             //Log.Information("Hello, world!");
 
@@ -73,6 +72,8 @@ namespace WaveMaster_Backend
             //{
             //    Log.CloseAndFlush();
             //}
+
+            
 
             //app.UseHttpsRedirection();
             app.UseAuthorization();

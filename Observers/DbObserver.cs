@@ -1,19 +1,21 @@
 ﻿using WaveMaster_Backend.Models;
+using WaveMaster_Backend.Services;
 
-namespace WaveMaster_Backend.Services
+namespace WaveMaster_Backend.Observers
 {
     public class DbObserver : IObserver<List<PlotData>>
     {
         private IDisposable unsubscriber;
-        private readonly IReadService _readService;
-        public DbObserver(IReadService readService)
+        private readonly WaveMasterDbContext _context;
+
+        public DbObserver(WaveMasterDbContext context)
         {
-            _readService = readService;
-            _readService.Subscribe(this);
+            _context = context;
         }
-        public virtual void Subscribe(IObservable<List<PlotData>> provider)
+
+        public virtual void Subscribe(ReadService provider)
         {
-            if(provider != null)
+            if (provider != null)
             {
                 unsubscriber = provider.Subscribe(this);
             }
@@ -33,10 +35,14 @@ namespace WaveMaster_Backend.Services
             // Do nothing.
         }
 
-        public virtual void OnNext(List<PlotData> value)
+        public virtual void OnNext(List<PlotData> dataStore)
         {
-            Console.WriteLine("writing");
+            Console.WriteLine("Going to wait");
+            Task.Delay(10000);
+            Console.WriteLine("writing dataStore of count " + dataStore.Count());
 
+            _context.plotDatas.AddRange(dataStore);
+            _context.SaveChanges();
         }
     }
 }

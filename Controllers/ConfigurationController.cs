@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.IO.Ports;
 using System.Net;
+using WaveMaster_Backend.HubConfig;
+using WaveMaster_Backend.Models;
+using WaveMaster_Backend.Observers;
 using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
 
@@ -13,11 +17,14 @@ namespace WaveMaster_Backend.Controllers
 
         private readonly ISharedVariableService _sharedVariableService;
         private readonly IReadService _readService;
-        
-        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
+        private readonly IHubContext<PlotDataHub> _hubContext;
+        private readonly WaveMasterDbContext _context;
+        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService, IHubContext<PlotDataHub> hubContext, WaveMasterDbContext context)
         {
             _sharedVariableService = sharedVariableService;
             _readService = readService;
+            _hubContext = hubContext;
+            _context = context;
         }
 
         [HttpGet]
@@ -48,7 +55,14 @@ namespace WaveMaster_Backend.Controllers
             try
             {
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_readService.DataReceivedHandler);
-                _serialPort.Open(); 
+                _serialPort.Open();
+
+          
+                DbObserver dbObserver = new DbObserver(_context);
+                HubObserver hubObserver = new HubObserver(_hubContext);
+                
+                _readService.Subscribe(hubObserver);
+                _readService.Subscribe(dbObserver);
             }
             catch(Exception ex) {
                 Console.WriteLine(ex);
@@ -68,6 +82,7 @@ namespace WaveMaster_Backend.Controllers
             {
                 _sharedVariableService.serialPort.DataReceived -= _readService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
+                
             }
             catch (Exception ex)
             {

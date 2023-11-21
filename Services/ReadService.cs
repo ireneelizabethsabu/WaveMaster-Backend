@@ -10,26 +10,20 @@ namespace WaveMaster_Backend.Services
 {
     public interface IReadService
     {
-        void Subscribe(IObserver<List<PlotData>> observer, string name = "");
-        void Unsubscribe(IObserver<List<PlotData>> observer);
-
-        void DataReceivedHandler(
-                        object sender,
-                        SerialDataReceivedEventArgs e);
+        void DataReceivedHandler(object sender,SerialDataReceivedEventArgs e);
+        public IDisposable Subscribe(IObserver<List<PlotData>> observer);
     }
     public class ReadService : IObservable<List<PlotData>>,IReadService
     {
         private readonly IHubContext<PlotDataHub> _hub;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
         public string ReceivedString { get; set; } = String.Empty;
         public string Mode { get; set; } = "CAPTURE";
         
-        List<PlotData> dataStore = new List<PlotData>();
+        List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
 
         public ReadService(IHubContext<PlotDataHub> hub)
         {
-            //_context = context;
             _hub = hub;
             observers = new List<IObserver<List<PlotData>>>();
         }
@@ -49,32 +43,16 @@ namespace WaveMaster_Backend.Services
                 if (! (_observer == null)) _observers.Remove(_observer);
             }
         }
-
-        public void Subscribe(IObserver<List<PlotData>> observer,string name = "")
-        {
-            Console.WriteLine(name);
-            if (!observers.Contains(observer))
-            {
-                observers.Add(observer);
-            }
-        }
-
-        public void Unsubscribe(IObserver<List<PlotData>> observer)
-        {
-            observers.Remove(observer);
-        }
+        
         public IDisposable Subscribe(IObserver<List<PlotData>> observer)
         {
             if (! observers.Contains(observer))
                 observers.Add(observer);
-
+            Console.WriteLine("added observer");
             return new Unsubscriber(observers, observer);
         }
 
-        
-
-        public void DataReceivedHandler(
-                        object sender,
+        public void DataReceivedHandler(object sender,
                         SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
@@ -84,33 +62,28 @@ namespace WaveMaster_Backend.Services
                 //Console.WriteLine($"..........................{DataAcquisitionRate}......................");
 
                 sp.Read(buffer, 0, 2);
+                //Console.WriteLine(buffer);
                 string hexData = BitConverter.ToString(buffer).Replace("-", "");
+                //string hexData = BitConverter.ToString(buffer);
 
                 PlotData pd = new PlotData();
-                pd.voltage = Convert.ToInt32("0x" + hexData, 16);
+                pd.voltage = Convert.ToInt32("0x"+hexData, 16);
                 pd.time = DateTime.Now;
                 dataStore.Add(pd);
                 //Console.WriteLine($"{pd.voltage} - {pd.time} ");
 
                 if (dataStore.Count() > 200)
                 {
-                    Log.Information("Data STore count - 200");
-                    _hub.Clients.All.SendAsync("transferPlotData", dataStore);
-                    // Task.Run(() => WriteToDB(dataStore,_serviceScopeFactory));
-
-                    List<PlotData> points = new List<PlotData>(dataStore);
-                    //await WriteToDB(points, _serviceScopeFactory);
+                    //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
                     NotifyObservers();
                     dataStore.Clear();
                 }
-
             }
             else
             {
                 ReceivedString = sp.ReadTo("\n");
                 Console.WriteLine("Data Received : {0}", ReceivedString);
                 ReceivedString = String.Empty;
-                //serialPort.DiscardInBuffer();
             }
         }
 
@@ -118,19 +91,8 @@ namespace WaveMaster_Backend.Services
         {
             foreach (var observer in observers)
             {
-                //By Calling the Update method, we are sending notifications to observers
                 observer.OnNext(dataStore);
-            }
-        }
-        public async Task WriteToDB(List<PlotData> dataStore, IServiceScopeFactory serviceScopeFactory)
-        {
-            
-            //await Task.Delay(30000);
-           
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetService<WaveMasterDbContext>();
-                await dbContext.plotDatas.AddRangeAsync(dataStore).ContinueWith(x => dbContext.SaveChangesAsync());
+                
             }
         }
     }
