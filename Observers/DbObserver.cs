@@ -1,4 +1,5 @@
-﻿using WaveMaster_Backend.Models;
+﻿using EFCore.BulkExtensions;
+using WaveMaster_Backend.Models;
 using WaveMaster_Backend.Services;
 
 namespace WaveMaster_Backend.Observers
@@ -38,11 +39,18 @@ namespace WaveMaster_Backend.Observers
         public virtual void OnNext(List<PlotData> dataStore)
         {
             Console.WriteLine("Going to wait");
-            Task.Delay(10000);
             Console.WriteLine("writing dataStore of count " + dataStore.Count());
 
-            _context.plotDatas.AddRange(dataStore);
-            _context.SaveChanges();
+            //_context.plotDatas.AddRange(dataStore);
+            Task.Run(() => {
+                //_context.plotDatas.AddRange(dataStore);
+                //_context.SaveChanges();
+                _context.BulkInsert(dataStore);
+                //_context.BulkSaveChanges();
+            });
+            
+            //_context.BulkSaveChanges();
+           
         }
     }
 }
