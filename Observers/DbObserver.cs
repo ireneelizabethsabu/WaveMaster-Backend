@@ -9,6 +9,7 @@ namespace WaveMaster_Backend.Observers
         private IDisposable unsubscriber;
         private readonly WaveMasterDbContext _context;
         private Mutex _mutex = new Mutex(false);
+        
         public DbObserver(WaveMasterDbContext context)
         {
             _context = context;
@@ -36,28 +37,24 @@ namespace WaveMaster_Backend.Observers
             // Do nothing.
         }
 
-        public virtual void OnNext(List<PlotData> dataStore)
+        public async virtual void OnNext(List<PlotData> dataStore)
         {
             Console.WriteLine("Going to wait");
             Console.WriteLine("writing dataStore of count " + dataStore.Count());
 
             //_context.plotDatas.AddRange(dataStore);
-            Task.Run(() => {
+            await Task.Run(() => {
                 //_context.plotDatas.AddRange(dataStore);
                 //_context.SaveChanges();
                 _mutex.WaitOne();             
                 _context.BulkInsert(dataStore);
-
-                //
                 _mutex.ReleaseMutex();
                 //Console.WriteLine("Finished writing!!!!");
                 //_context.BulkSaveChanges();
             });
-            
-            //_context.BulkSaveChanges();
-           
-        }
 
-        
+            //_context.BulkSaveChanges();
+            Console.WriteLine("Writing done");
+        }        
     }
 }

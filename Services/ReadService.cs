@@ -12,12 +12,13 @@ namespace WaveMaster_Backend.Services
     {
         void DataReceivedHandler(object sender,SerialDataReceivedEventArgs e);
         public IDisposable Subscribe(IObserver<List<PlotData>> observer);
+        string Mode { get; set; }
     }
     public class ReadService : IObservable<List<PlotData>>,IReadService
     {
         private readonly IHubContext<PlotDataHub> _hub;
         public string ReceivedString { get; set; } = String.Empty;
-        public string Mode { get; set; } = "CAPTURE";
+        public string Mode { get; set; }
         
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
@@ -56,7 +57,7 @@ namespace WaveMaster_Backend.Services
                         SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
-            if (Mode.Equals("CAPTURE"))
+            if (Mode is not null && Mode.Equals("CAPTURE"))
             {
                 byte[] buffer = new byte[2];
                 //Console.WriteLine($"..........................{DataAcquisitionRate}......................");
@@ -79,7 +80,7 @@ namespace WaveMaster_Backend.Services
                     dataStore.Clear();
                 }
             }
-            else
+            else if(Mode == "READ")
             {
                 ReceivedString = sp.ReadTo("\n");
                 Console.WriteLine("Data Received : {0}", ReceivedString);
@@ -91,7 +92,7 @@ namespace WaveMaster_Backend.Services
         {
             foreach (var observer in observers)
             {
-                observer.OnNext(dataStore);
+                observer.OnNext(new List<PlotData>(dataStore));
                 
             }
         }

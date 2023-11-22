@@ -17,9 +17,10 @@ namespace WaveMaster_Backend.Services
     }
     public class CommunicationService : ISharedVariableService
     {
+        
         public SerialPort serialPort{ get; set; }
         public string ReceivedString { get; set; } = String.Empty;
-        public string Mode { get; set; } = "CAPTURE";
+
         public int DataAcquisitionRate { get; set; } = 1;
 
         private readonly IHubContext<PlotDataHub> _hub;
@@ -29,6 +30,7 @@ namespace WaveMaster_Backend.Services
             IHubContext<PlotDataHub> hub)
         {
             _hub = hub;
+           
         }
 
         public void SendData(string command)
@@ -37,10 +39,7 @@ namespace WaveMaster_Backend.Services
             {
                 //SocketCommunication.SendData(command);
                 Console.WriteLine(command);
-                if(command.Equals("GET CAPTURE DATA;"))
-                {
-                    Mode = "CAPTURE";
-                }
+                
                 serialPort.Write(command);
                 serialPort.DiscardOutBuffer();
             }catch(Exception ex)

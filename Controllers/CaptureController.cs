@@ -12,10 +12,11 @@ namespace WaveMaster_Backend.Controllers
     public class CaptureController : ControllerBase
     {
         private readonly ISharedVariableService _sharedVariableService;
-
-        public CaptureController(ISharedVariableService sharedVariableService)
+        private readonly IReadService _readService;
+        public CaptureController(ISharedVariableService sharedVariableService, IReadService readService)
         {
             _sharedVariableService = sharedVariableService;
+            _readService = readService;
         }
 
         [HttpGet("plotdata")]
@@ -26,7 +27,7 @@ namespace WaveMaster_Backend.Controllers
             Random r =  new Random();
             dataModel.Voltage = r.NextDouble();
 
-            _sharedVariableService.SendData("GET CAPTURE DATA;");        
+            _sharedVariableService.SendData("GET CAPTURE DATA;");
             
             return dataModel;
         }
@@ -61,7 +62,7 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-
+            _readService.Mode = "CAPTURE";
             _sharedVariableService.SendData($"{value} CAPTURE;");           
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
