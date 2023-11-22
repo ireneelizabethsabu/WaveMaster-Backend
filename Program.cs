@@ -30,7 +30,8 @@ namespace WaveMaster_Backend
 
             builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
             builder.Services.AddSingleton<IReadService, ReadService>();
-        
+            builder.Services.AddSingleton<IObserverService, ObserverService>();
+
             builder.Services.AddSignalR();
 
             var app = builder.Build();

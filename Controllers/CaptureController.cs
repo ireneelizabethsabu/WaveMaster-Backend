@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.IO.Ports;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Serilog;
+using WaveMaster_Backend.HubConfig;
+using WaveMaster_Backend.Models;
+using WaveMaster_Backend.Observers;
 using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WaveMaster_Backend.Controllers
 {
@@ -13,20 +15,38 @@ namespace WaveMaster_Backend.Controllers
     {
         private readonly ISharedVariableService _sharedVariableService;
         private readonly IReadService _readService;
-        public CaptureController(ISharedVariableService sharedVariableService, IReadService readService)
+        private readonly IObserverService _observerService;
+
+        public CaptureController(ISharedVariableService sharedVariableService, IReadService readService
+            ,IObserverService observerService)
         {
             _sharedVariableService = sharedVariableService;
             _readService = readService;
+            _observerService = observerService;
         }
-       
-
-        
+               
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-            
             _sharedVariableService.SendData($"{value} CAPTURE;");
-            _readService.Mode = "CAPTURE";
+            if (value.Equals("START"))
+            {
+               
+                _observerService.HubObserver.Subscribe(_readService);
+                Log.Information("Hub Observer Subscribed");
+                _observerService.DbObserver.Subscribe(_readService);
+                Log.Information("Db Observer Subscribed");
+                _readService.Mode = "CAPTURE";
+            }
+            else if (value.Equals("STOP"))
+            {
+                _readService.Mode = "READ";
+                //UNSUBSCRIBE OBSERVERS HERE
+                _observerService.HubObserver.Unsubscribe();
+                Log.Information("Hub Observer UnSubscribed");
+                _observerService.DbObserver.Unsubscribe();
+                Log.Information("Db Observer UnSubscribed");
+            }
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
 
@@ -36,7 +56,6 @@ namespace WaveMaster_Backend.Controllers
         {
             SignalDataModel dataModel = new SignalDataModel();
             Random r = new Random();
-            _readService.Mode = "FETCH";
             _sharedVariableService.SendData("GET CAPTURE DATA;");
 
             while (true)

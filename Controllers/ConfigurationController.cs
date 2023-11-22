@@ -16,17 +16,11 @@ namespace WaveMaster_Backend.Controllers
     {
         private readonly ISharedVariableService _sharedVariableService;
         private readonly IReadService _readService;
-        private readonly IHubContext<PlotDataHub> _hubContext;
-        private readonly WaveMasterDbContext _context;
-
-        public DbObserver DbObserver { get; set; }
-        public HubObserver HubObserver { get; set; }
-        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService, IHubContext<PlotDataHub> hubContext, WaveMasterDbContext context)
+        
+        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
         {
             _sharedVariableService = sharedVariableService;
             _readService = readService;
-            _hubContext = hubContext;
-            _context = context;
         }
 
         [HttpGet]
@@ -52,13 +46,6 @@ namespace WaveMaster_Backend.Controllers
             {
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_readService.DataReceivedHandler);
                 _serialPort.Open();
-
-                DbObserver = new DbObserver(_context);
-                HubObserver = new HubObserver(_hubContext);
-                HubObserver.Subscribe(_readService);               
-                Log.Information("Hub Observer Subscribed");               
-                DbObserver.Subscribe(_readService);
-                Log.Information("Db Observer Subscribed");
             }
             catch(Exception ex) {
                 Console.WriteLine(ex);
@@ -77,9 +64,6 @@ namespace WaveMaster_Backend.Controllers
             {
                 _sharedVariableService.serialPort.DataReceived -= _readService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
-                //UNSUBSCRIBE OBSERVERS HERE
-                HubObserver.Unsubscribe();
-                DbObserver.Unsubscribe();
             }
             catch (Exception ex)
             {
