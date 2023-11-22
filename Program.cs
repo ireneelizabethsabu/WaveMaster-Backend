@@ -29,7 +29,7 @@ namespace WaveMaster_Backend
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddSingleton<ISharedVariableService, CommunicationService>();
-            builder.Services.AddScoped<IReadService, ReadService>();
+            builder.Services.AddSingleton<IReadService, ReadService>();
         
             builder.Services.AddSignalR();
 

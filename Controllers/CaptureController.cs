@@ -28,7 +28,7 @@ namespace WaveMaster_Backend.Controllers
             dataModel.Voltage = r.NextDouble();
 
             _sharedVariableService.SendData("GET CAPTURE DATA;");
-            
+            _readService.Mode = "CAPTURE";
             return dataModel;
         }
 
@@ -62,8 +62,9 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
+            
+            _sharedVariableService.SendData($"{value} CAPTURE;");
             _readService.Mode = "CAPTURE";
-            _sharedVariableService.SendData($"{value} CAPTURE;");           
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
 
