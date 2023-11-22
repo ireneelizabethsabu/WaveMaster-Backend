@@ -18,45 +18,7 @@ namespace WaveMaster_Backend.Controllers
             _sharedVariableService = sharedVariableService;
             _readService = readService;
         }
-
-        [HttpGet("plotdata")]
-        public PlotDataModel GetPlotData()
-        {
-            PlotDataModel dataModel = new PlotDataModel();
-            dataModel.Timestamp = DateTime.Now;
-            Random r =  new Random();
-            dataModel.Voltage = r.NextDouble();
-
-            _sharedVariableService.SendData("GET CAPTURE DATA;");
-            _readService.Mode = "CAPTURE";
-            return dataModel;
-        }
-
-        [HttpGet("signaldata")]
-        public SignalDataModel GetSignalData()
-        {
-            SignalDataModel dataModel = new SignalDataModel();
-            Random r = new Random();
-            
-            _sharedVariableService.SendData("GET CAPTURE DATA;");
-            
-            while (true)
-            {
-                try
-                {
-                    string message = _sharedVariableService.serialPort.ReadLine();
-                    Console.WriteLine(message);
-                                        
-                    //logic to get data 
-                    dataModel.PeakToPeak = r.NextDouble();
-                    dataModel.Frequency = r.Next(100, 1000);
-                    break;
-                }
-                catch (TimeoutException) { }
-            }
-
-            return dataModel;
-        }
+       
 
         
         [HttpPost("plotcommand")]
@@ -67,6 +29,33 @@ namespace WaveMaster_Backend.Controllers
             _readService.Mode = "CAPTURE";
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
         }
+
+
+        [HttpGet("signaldata")]
+        public SignalDataModel GetSignalData()
+        {
+            SignalDataModel dataModel = new SignalDataModel();
+            Random r = new Random();
+            _readService.Mode = "FETCH";
+            _sharedVariableService.SendData("GET CAPTURE DATA;");
+
+            while (true)
+            {
+                try
+                {
+                    string message = _sharedVariableService.serialPort.ReadLine();
+                    Console.WriteLine(message);
+
+                    //logic to get data 
+                    dataModel.PeakToPeak = r.NextDouble();
+                    dataModel.Frequency = r.Next(100, 1000);
+                    break;
+                }
+                catch (TimeoutException) { }
+            }
+            return dataModel;
+        }
+
 
         [HttpPost("rate")]
         public IActionResult PostRate([FromBody] int rate)
