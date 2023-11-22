@@ -8,7 +8,7 @@ namespace WaveMaster_Backend.Observers
     {
         private IDisposable unsubscriber;
         private readonly WaveMasterDbContext _context;
-
+        private Mutex _mutex = new Mutex(false);
         public DbObserver(WaveMasterDbContext context)
         {
             _context = context;
@@ -45,12 +45,19 @@ namespace WaveMaster_Backend.Observers
             Task.Run(() => {
                 //_context.plotDatas.AddRange(dataStore);
                 //_context.SaveChanges();
+                _mutex.WaitOne();             
                 _context.BulkInsert(dataStore);
+
+                //
+                _mutex.ReleaseMutex();
+                //Console.WriteLine("Finished writing!!!!");
                 //_context.BulkSaveChanges();
             });
             
             //_context.BulkSaveChanges();
            
         }
+
+        
     }
 }
