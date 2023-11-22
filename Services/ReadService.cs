@@ -54,7 +54,7 @@ namespace WaveMaster_Backend.Services
                         SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
-            if ( Mode.Equals("CAPTURE"))
+            if (Mode.Equals("CAPTURE"))
             {
                 byte[] buffer = new byte[2];
                 
@@ -87,6 +87,7 @@ namespace WaveMaster_Backend.Services
 
         public void NotifyObservers()
         {
+            Console.WriteLine(observers.Count());
             foreach (var observer in observers)
             {
                 observer.OnNext(new List<PlotData>(dataStore));
