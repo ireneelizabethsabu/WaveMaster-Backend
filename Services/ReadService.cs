@@ -16,15 +16,17 @@ namespace WaveMaster_Backend.Services
     }
     public class ReadService : IObservable<List<PlotData>>,IReadService
     {
-        public string ReceivedString { get; set; } = String.Empty;
+        public string ReceivedString { get; set; } = "READ";
         public string Mode { get; set; } = String.Empty;
-        
+        private readonly IHubContext<PlotDataHub> _hub;
+
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
 
-        public ReadService()
+        public ReadService(IHubContext<PlotDataHub> hub)
         { 
             observers = new List<IObserver<List<PlotData>>>();
+            _hub = hub;
         }
         private class Unsubscriber : IDisposable
         {
@@ -77,12 +79,19 @@ namespace WaveMaster_Backend.Services
                     dataStore.Clear();
                 }
             }
-            else if(Mode == "READ")
+            else
             {
                 ReceivedString = sp.ReadTo("\n");
+                //ReceivedString = "0.85 3.33";
                 Console.WriteLine("Data Received : {0}", ReceivedString);
-                ReceivedString = String.Empty;
+                _hub.Clients.All.SendAsync("data", ReceivedString);
             }
+            //else if(Mode == "READ")
+            //{
+            //    ReceivedString = sp.ReadTo("\n");
+            //    Console.WriteLine("Data Received : {0}", ReceivedString);
+            //    ReceivedString = String.Empty;
+            //}
         }
 
         public void NotifyObservers()

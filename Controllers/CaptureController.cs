@@ -32,28 +32,27 @@ namespace WaveMaster_Backend.Controllers
 
 
         [HttpGet("signaldata")]
-        public SignalDataModel GetSignalData()
+        public void GetSignalData()
         {
-            SignalDataModel dataModel = new SignalDataModel();
-            Random r = new Random();
-            _readService.Mode = "FETCH";
+            //SignalDataModel dataModel = new SignalDataModel();
+            //Random r = new Random(); 
             _sharedVariableService.SendData("GET CAPTURE DATA;");
 
-            while (true)
-            {
-                try
-                {
-                    string message = _sharedVariableService.serialPort.ReadLine();
-                    Console.WriteLine(message);
+            //while (true)
+            //{
+            //    try
+            //    {
+            //        string message = _sharedVariableService.serialPort.ReadLine();
+            //        Console.WriteLine(message);
 
-                    //logic to get data 
-                    dataModel.PeakToPeak = r.NextDouble();
-                    dataModel.Frequency = r.Next(100, 1000);
-                    break;
-                }
-                catch (TimeoutException) { }
-            }
-            return dataModel;
+            //        //logic to get data 
+            //        dataModel.PeakToPeak = r.NextDouble();
+            //        dataModel.Frequency = r.Next(100, 1000);
+            //        break;
+            //    }
+            //    catch (TimeoutException) { }
+            //}
+            //return dataModel;
         }
 
 
