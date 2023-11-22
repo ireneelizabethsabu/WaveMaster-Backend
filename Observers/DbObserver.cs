@@ -1,4 +1,5 @@
 ﻿using EFCore.BulkExtensions;
+using Serilog;
 using WaveMaster_Backend.Models;
 using WaveMaster_Backend.Services;
 
@@ -39,8 +40,8 @@ namespace WaveMaster_Backend.Observers
 
         public async virtual void OnNext(List<PlotData> dataStore)
         {
-            Console.WriteLine("Going to wait");
-            Console.WriteLine("writing dataStore of count " + dataStore.Count());
+            //Console.WriteLine("Going to wait");
+            //Console.WriteLine("writing dataStore of count " + dataStore.Count());
 
             //_context.plotDatas.AddRange(dataStore);
             await Task.Run(() => {
@@ -52,7 +53,7 @@ namespace WaveMaster_Backend.Observers
                 //Console.WriteLine("Finished writing!!!!");
                 //_context.BulkSaveChanges();
             });
-            Console.WriteLine("Writing done");
+            Log.Information("Writing to DB done");
         }        
     }
 }
