@@ -18,7 +18,7 @@ namespace WaveMaster_Backend.Services
     {
         private readonly IHubContext<PlotDataHub> _hub;
         public string ReceivedString { get; set; } = String.Empty;
-        public string Mode { get; set; }
+        public string Mode { get; set; } = String.Empty;
         
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
@@ -57,7 +57,7 @@ namespace WaveMaster_Backend.Services
                         SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
-            if (Mode is not null && Mode.Equals("CAPTURE"))
+            if (Mode.Equals("CAPTURE"))
             {
                 byte[] buffer = new byte[2];
                 //Console.WriteLine($"..........................{DataAcquisitionRate}......................");
@@ -90,6 +90,7 @@ namespace WaveMaster_Backend.Services
 
         public void NotifyObservers()
         {
+            Console.WriteLine(observers.Count());
             foreach (var observer in observers)
             {
                 observer.OnNext(new List<PlotData>(dataStore));

@@ -52,8 +52,6 @@ namespace WaveMaster_Backend.Observers
                 //Console.WriteLine("Finished writing!!!!");
                 //_context.BulkSaveChanges();
             });
-
-            //_context.BulkSaveChanges();
             Console.WriteLine("Writing done");
         }        
     }
