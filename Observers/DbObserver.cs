@@ -16,7 +16,7 @@ namespace WaveMaster_Backend.Observers
             _context = context;
         }
 
-        public virtual void Subscribe(ReadService provider)
+        public virtual void Subscribe(IReadService provider)
         {
             if (provider != null)
             {

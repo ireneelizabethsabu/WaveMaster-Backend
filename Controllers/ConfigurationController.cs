@@ -18,6 +18,9 @@ namespace WaveMaster_Backend.Controllers
         private readonly IReadService _readService;
         private readonly IHubContext<PlotDataHub> _hubContext;
         private readonly WaveMasterDbContext _context;
+
+        public DbObserver DbObserver { get; set; }
+        public HubObserver HubObserver { get; set; }
         public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService, IHubContext<PlotDataHub> hubContext, WaveMasterDbContext context)
         {
             _sharedVariableService = sharedVariableService;
@@ -50,11 +53,11 @@ namespace WaveMaster_Backend.Controllers
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_readService.DataReceivedHandler);
                 _serialPort.Open();
 
-                DbObserver dbObserver = new DbObserver(_context);
-                HubObserver hubObserver = new HubObserver(_hubContext);
-                _readService.Subscribe(hubObserver);
-                Log.Information("Hub Observer Subscribed");
-                _readService.Subscribe(dbObserver);
+                DbObserver = new DbObserver(_context);
+                HubObserver = new HubObserver(_hubContext);
+                HubObserver.Subscribe(_readService);               
+                Log.Information("Hub Observer Subscribed");               
+                DbObserver.Subscribe(_readService);
                 Log.Information("Db Observer Subscribed");
             }
             catch(Exception ex) {
@@ -75,6 +78,8 @@ namespace WaveMaster_Backend.Controllers
                 _sharedVariableService.serialPort.DataReceived -= _readService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
                 //UNSUBSCRIBE OBSERVERS HERE
+                HubObserver.Unsubscribe();
+                DbObserver.Unsubscribe();
             }
             catch (Exception ex)
             {
