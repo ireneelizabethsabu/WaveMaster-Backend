@@ -28,7 +28,7 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-            _sharedVariableService.SendData($"{value} CAPTURE;");
+            _sharedVariableService.SendData($"CAPTURE {value};");
             if (value.Equals("START"))
             {
                

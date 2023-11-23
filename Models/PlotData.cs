@@ -8,7 +8,7 @@ namespace WaveMaster_Backend.Models
 
         [Key]
         public int id { get; set; }
-        public decimal voltage { get; set; }
+        public double voltage { get; set; }
         public DateTime time {  get; set; }
     }
 }

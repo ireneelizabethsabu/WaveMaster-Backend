@@ -38,11 +38,13 @@ namespace WaveMaster_Backend.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("start")]
         public IActionResult Post([FromBody] SignalDataModel signalData)
         {
+
             string jsonString = JsonSerializer.Serialize(signalData);
             string filePath = "settings.json";
+            _sharedVariableService.SendData($"GENERATE START;");
             _sharedVariableService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
             try
             {
@@ -60,10 +62,9 @@ namespace WaveMaster_Backend.Controllers
             return Ok(new { message = "GenerateController : Post() -JSON data has been written to the file." });
         }
 
-        [HttpPost("stopGenerate")]
+        [HttpPost("stop")]
         public IActionResult PostStopGenerate()
-        {
-            
+        {   
             _sharedVariableService.SendData($"GENERATE STOP;");
             return Ok(new { message = "GenerateController : PostStopGenerate() - success." });
         }

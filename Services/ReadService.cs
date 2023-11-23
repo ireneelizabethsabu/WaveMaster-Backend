@@ -60,15 +60,16 @@ namespace WaveMaster_Backend.Services
                 
 
                 sp.Read(buffer, 0, 2);
-                //Console.WriteLine(buffer);
+                
                 string hexData = BitConverter.ToString(buffer).Replace("-", "");
-                //string hexData = BitConverter.ToString(buffer);
-
+                //string data = BitConverter.ToString(buffer);
+                //string hexData = data.Split("-")[1] + data.Split("-")[0];
+                //Console.WriteLine(System.Text.Encoding.Unicode.GetString(buffer));
                 PlotData pd = new PlotData();
-                pd.voltage = Convert.ToInt32("0x"+hexData, 16);
+                pd.voltage = Convert.ToInt32("0x"+hexData, 16) * Convert.ToDouble(3.3/4096);
                 pd.time = DateTime.Now;
                 dataStore.Add(pd);
-                //Console.WriteLine($"{pd.voltage} - {pd.time} ");
+                Console.WriteLine($"{pd.voltage} - {pd.time} ");
 
                 if (dataStore.Count() > 200)
                 {
