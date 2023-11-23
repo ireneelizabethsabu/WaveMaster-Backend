@@ -16,15 +16,17 @@ namespace WaveMaster_Backend.Services
     }
     public class ReadService : IObservable<List<PlotData>>,IReadService
     {
-        public string ReceivedString { get; set; } = String.Empty;
+        public string ReceivedString { get; set; } = "READ";
         public string Mode { get; set; } = String.Empty;
-        
+        private readonly IHubContext<PlotDataHub> _hub;
+
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
 
-        public ReadService()
+        public ReadService(IHubContext<PlotDataHub> hub)
         { 
             observers = new List<IObserver<List<PlotData>>>();
+            _hub = hub;
         }
         private class Unsubscriber : IDisposable
         {
@@ -65,20 +67,41 @@ namespace WaveMaster_Backend.Services
                 //string data = BitConverter.ToString(buffer);
                 //string hexData = data.Split("-")[1] + data.Split("-")[0];
                 //Console.WriteLine(System.Text.Encoding.Unicode.GetString(buffer));
-                PlotData pd = new PlotData();
-                pd.voltage = Convert.ToInt32("0x"+hexData, 16) * Convert.ToDouble(3.3/4096);
-                pd.time = DateTime.Now;
-                dataStore.Add(pd);
-                Console.WriteLine($"{pd.voltage} - {pd.time} ");
-
-                if (dataStore.Count() > 200)
+                
+ 
+                try
                 {
-                    //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
-                    NotifyObservers();
-                    dataStore.Clear();
+                    PlotData pd = new PlotData();
+                    pd.voltage = Convert.ToInt32(hexData);
+                    pd.time = DateTime.Now;
+                    dataStore.Add(pd);
+                    //Console.WriteLine($"{pd.voltage} - {pd.time} ");
+
+                    if (dataStore.Count() > 200)
+                    {
+                        //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
+                        NotifyObservers();
+                        dataStore.Clear();
+                    }
                 }
+                catch(FormatException ex)
+                {
+                    Mode = "READ";
+                    _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
+                    ReceivedString = sp.ReadTo("\n");
+                }
+                
+                
             }
-            else if(Mode == "READ")
+            else if(Mode == "FETCH")
+            {
+                ReceivedString = sp.ReadTo("\n");
+                //ReceivedString = "0.85 3.33";
+                Console.WriteLine("Data Received : {0}", ReceivedString);
+                _hub.Clients.All.SendAsync("fetchData", ReceivedString);
+                Mode = "READ";
+            }
+            else if (Mode == "READ")
             {
                 ReceivedString = sp.ReadTo("\n");
                 Console.WriteLine("Data Received : {0}", ReceivedString);
@@ -91,8 +114,7 @@ namespace WaveMaster_Backend.Services
             Console.WriteLine(observers.Count());
             foreach (var observer in observers)
             {
-                observer.OnNext(new List<PlotData>(dataStore));
-                
+                observer.OnNext(new List<PlotData>(dataStore));                
             }
         }
     }
