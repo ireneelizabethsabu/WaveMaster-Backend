@@ -55,8 +55,7 @@ namespace WaveMaster_Backend.Controllers
         public void GetSignalData()
         {
             _sharedVariableService.SendData("GET CAPTURE DATA;");
-
-           
+            _readService.Mode = "FETCH";           
         }
 
 
