@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Net.Sockets;
 using System.Text;
@@ -11,23 +12,24 @@ namespace WaveMaster_Backend.Services
 {
     public interface IReadService
     {
-        void DataReceivedHandler(object sender,SerialDataReceivedEventArgs e);
+        void DataReceivedHandler();
         public IDisposable Subscribe(IObserver<List<PlotData>> observer);
         string Mode { get; set; }
     }
     public class ReadService : IObservable<List<PlotData>>,IReadService
     {
         public string ReceivedString { get; set; } = "READ";
-        public string Mode { get; set; } = "READ";
+        public string Mode { get; set; } = "";
         private readonly IHubContext<PlotDataHub> _hub;
-
+        private readonly ISharedVariableService _sharedVariableService;
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
 
-        public ReadService(IHubContext<PlotDataHub> hub)
+        public ReadService(IHubContext<PlotDataHub> hub, ISharedVariableService sharedVariableService)
         { 
             observers = new List<IObserver<List<PlotData>>>();
             _hub = hub;
+           _sharedVariableService = sharedVariableService;
         }
         private class Unsubscriber : IDisposable
         {
@@ -53,159 +55,99 @@ namespace WaveMaster_Backend.Services
             return new Unsubscriber(observers, observer);
         }
 
-        public void DataReceivedHandler(object sender,
-                        SerialDataReceivedEventArgs e)
+        public async void DataReceivedHandler()
         {
-            SerialPort sp = (SerialPort)sender;
-            byte[] buffer = new byte[2];
-            if (Mode.Equals("CAPTURE"))
+            SerialPort sp = _sharedVariableService.serialPort;
+            while (sp.IsOpen)
             {
+                var buffer = new byte[1024];
                 try
-                {
-                    sp.Read(buffer, 0, 2);
-                    string buf = Encoding.ASCII.GetString(buffer);
-                    Console.WriteLine(buf);
-                    if (buf.Equals("Ca"))
-                    {
-                        Console.WriteLine("HELLLLLLLLLLLLLLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-                    }
-                    int hexData = BitConverter.ToInt16(buffer, 0);
-                    Console.WriteLine(hexData);
-                    //string hexData = BitConverter.ToString(buffer).Replace("-", "");
-                    //string hexData = BitConverter.ToString(buffer).Replace("-", "");
-                    PlotData pd = new PlotData();
-                    pd.voltage = hexData * (3.3 / 4096);
-                    pd.time = DateTime.Now;
-                    dataStore.Add(pd);
-                    Console.WriteLine($"{pd.voltage} - {pd.time} ");
+                {  
+                    if (sp.BytesToRead == 0)
+                        continue;
 
-                    if (dataStore.Count() > 200)
+                    int cnt = sp.BaseStream.Read(buffer, 0, 1024);
+                    string asciiString = Encoding.ASCII.GetString(buffer, 0, cnt);
+                    Console.WriteLine(asciiString);
+                    if(asciiString.Contains("Capture Stopped;"))
                     {
-                        //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
-                        NotifyObservers();
-                        dataStore.Clear();
+                        Log.Information("Capture Stopped; received");
+                        await _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
+                        Mode = "";
+                    }else if (asciiString.Contains("DATA"))
+                    {
+                        await _hub.Clients.All.SendAsync("fetchData", asciiString);
                     }
+                    else if (asciiString.Contains("Capture Started;"))
+                    {
+                        Log.Information("Capture Started; received");
+                        Mode = "CAPTURE";
+                    }
+                    else
+                    {
+                        if (Mode.Equals("CAPTURE"))
+                        {
+                            for (int i = 0; i < cnt; i++)
+                            {
+                                if ((char)buffer[i] == ';')
+                                {
+                                    Console.WriteLine("semiiii");
+                                }
+                                else
+                                {
+                                    Console.Write((int)buffer[i]);
+                                }
+                            }
+                            Console.WriteLine();
+                        }
+                    }        
                 }
                 catch (Exception ex)
                 {
-                    Mode = "READ";
-                    _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
-                    ReceivedString = sp.ReadTo(";");
-                    Console.WriteLine(ReceivedString);
+                    Debug.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
                 }
-            }
-            else if (Mode == "FETCH")
-            {
-                ReceivedString = sp.ReadTo(";");
-                //ReceivedString = "0.85 3.33";
-                Console.WriteLine("Data Received : {0}", ReceivedString);
-                _hub.Clients.All.SendAsync("fetchData", ReceivedString);
-                Mode = "READ";
-            }
-            else if (Mode == "READ")
-            {
-                ReceivedString = sp.ReadTo(";");
-                Console.WriteLine("Data Received : {0}", ReceivedString);
-                if(ReceivedString.StartsWith("Capture Started"))
-                {
-                    Mode = "CAPTURE";
-                }
-                ReceivedString = String.Empty;
-            }
+                //Console.WriteLine(ReceivedString);
+                //byte[] buffer = new byte[2];
+                //if (Mode.Equals("CAPTURE"))
+                //{
+                //    try
+                //    {
+                //        sp.Read(buffer, 0, 2);
+                //        string buf = Encoding.ASCII.GetString(buffer);
+                //        Console.WriteLine(buf);
+                //        if (buf.Equals("Ca"))
+                //        {
+                //            Console.WriteLine("HELLLLLLLLLLLLLLLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+                //        }
+                //        int hexData = BitConverter.ToInt16(buffer, 0);
+                //        Console.WriteLine(hexData);
+                //        //string hexData = BitConverter.ToString(buffer).Replace("-", "");
+                //        //string hexData = BitConverter.ToString(buffer).Replace("-", "");
+                //        PlotData pd = new PlotData();
+                //        pd.voltage = hexData * (3.3 / 4096);
+                //        pd.time = DateTime.Now;
+                //        dataStore.Add(pd);
+                //        Console.WriteLine($"{pd.voltage} - {pd.time} ");
 
+                //        if (dataStore.Count() > 200)
+                //        {
+                //            //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
+                //            NotifyObservers();
+                //            dataStore.Clear();
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        //Mode = "READ";
+                //        //_hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
+                //        //ReceivedString = sp.ReadTo(";");
+                //        //Console.WriteLine(ReceivedString);
+                //    }
+                //}
+                
+            }
+            
         }
-
-
-
-        public void DataReceivedHandlerCopy(object sender,
-                        SerialDataReceivedEventArgs e)
-        {
-            SerialPort sp = (SerialPort)sender;
-            //ReceivedString = sp.ReadTo("\n");
-            //Console.WriteLine(ReceivedString);
-            //if (ReceivedString.Equals("STOP CAPTURE"))
-            //{
-            //    _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
-            //}
-            //else
-            //{
-            //    try
-            //    {
-            //        PlotData pd = new PlotData();
-            //        pd.voltage = Convert.ToInt32(ReceivedString);
-            //        pd.time = DateTime.Now;
-            //        dataStore.Add(pd);
-            //        //Console.WriteLine($"{pd.voltage} - {pd.time} ");
-
-            //        if (dataStore.Count() > 200)
-            //        {
-            //            NotifyObservers();
-            //            dataStore.Clear();
-            //        }
-            //    }
-            //    catch (FormatException ex)
-            //    {
-            //        Console.WriteLine(ReceivedString);
-            //    }
-            //}
-
-
-
-
-
-            if (Mode.Equals("CAPTURE"))
-            {
-                byte[] buffer = new byte[2];
-
-
-                sp.Read(buffer, 0, 2);
-
-                string hexData = BitConverter.ToString(buffer).Replace("-", "");
-                //string data = BitConverter.ToString(buffer);
-                //string hexData = data.Split("-")[1] + data.Split("-")[0];
-                //Console.WriteLine(System.Text.Encoding.Unicode.GetString(buffer));
-
-
-                try
-                {
-                    PlotData pd = new PlotData();
-                    pd.voltage = Convert.ToInt32(hexData);
-                    pd.time = DateTime.Now;
-                    dataStore.Add(pd);
-                    //Console.WriteLine($"{pd.voltage} - {pd.time} ");
-
-                    if (dataStore.Count() > 200)
-                    {
-                        //_hub.Clients.All.SendAsync("transferPlotData", dataStore);
-                        NotifyObservers();
-                        dataStore.Clear();
-                    }
-                }
-                catch (FormatException ex)
-                {
-                    Mode = "READ";
-                    _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
-                    ReceivedString = sp.ReadTo("\n");
-                }
-
-
-            }
-            else if (Mode == "FETCH")
-            {
-                ReceivedString = sp.ReadTo("\n");
-                //ReceivedString = "0.85 3.33";
-                Console.WriteLine("Data Received : {0}", ReceivedString);
-                _hub.Clients.All.SendAsync("fetchData", ReceivedString);
-                Mode = "READ";
-            }
-            else if (Mode == "READ")
-            {
-                ReceivedString = sp.ReadTo("\n");
-                Console.WriteLine("Data Received : {0}", ReceivedString);
-                ReceivedString = String.Empty;
-            }
-        }
-
         public void NotifyObservers()
         {
             Console.WriteLine(observers.Count());
