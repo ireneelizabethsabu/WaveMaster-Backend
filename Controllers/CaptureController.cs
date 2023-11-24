@@ -36,11 +36,11 @@ namespace WaveMaster_Backend.Controllers
                 Log.Information("Hub Observer Subscribed");
                 _observerService.DbObserver.Subscribe(_readService);
                 Log.Information("Db Observer Subscribed");
-                _readService.Mode = "CAPTURE";
+                //_readService.Mode = "CAPTURE";
             }
             else if (value.Equals("STOP"))
             {
-                _readService.Mode = "READ";
+                //_readService.Mode = "READ";
                 //UNSUBSCRIBE OBSERVERS HERE
                 _observerService.HubObserver.Unsubscribe();
                 Log.Information("Hub Observer UnSubscribed");
