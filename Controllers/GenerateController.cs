@@ -6,31 +6,47 @@ using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Controllers
 {
+    /// <summary>
+    /// Controller for signal generation
+    /// </summary>
     [Route("[controller]")]
     [ApiController]
     public class GenerateController : ControllerBase
     {
+        private readonly ISerialPortService _serialportService;
 
-        private readonly ISharedVariableService _sharedVariableService;
-
-        public GenerateController(ISharedVariableService sharedVariableService)
+        /// <summary>
+        /// Initializes a new instance of the GenerateController class.
+        /// </summary>
+        /// <param name="serialportService">The serial port service instance.</param>
+        public GenerateController(ISerialPortService serialportService)
         {
-            _sharedVariableService = sharedVariableService;
+            _serialportService = serialportService;
         }
 
+        /// <summary>
+        /// Retrieves signal generation settings from a JSON file.
+        /// </summary>
+        /// <returns>
+        /// Returns a status indicating success or failure of retrieving settings file. In case of success returns the retrieved settings
+        /// </returns>
         [HttpGet]
-        public IActionResult Get()
-        {
-            string filePath = "settings.json";
+        public IActionResult GetSignalSettings()
+        {           
             try
             {
+                string filePath = "settings.json";
                 string jsonString = System.IO.File.ReadAllText(filePath);
-                var data = JsonSerializer.Deserialize<dynamic>(jsonString);
-
-                Console.WriteLine(data);
-
-                // Work with the deserialized data
-                return Ok(data);
+                var settings = JsonSerializer.Deserialize<dynamic>(jsonString);
+                return Ok(settings);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return NotFound($"SignalGenerationController : GetSignalSettings() - File not found: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return StatusCode(500, $"SignalGenerationController : GetSignalSettings() - JSON parsing error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -38,35 +54,50 @@ namespace WaveMaster_Backend.Controllers
             }
         }
 
+        /// <summary>
+        /// Starts signal generation based on provided signal data.
+        /// </summary>
+        /// <param name="signalData">contains signal type, frequency and peak to peak of the wave to be generated</param>
+        /// <returns>
+        /// Returns a status indicating success or failure of signal generation
+        /// </returns>
         [HttpPost("start")]
-        public IActionResult Post([FromBody] SignalDataModel signalData)
-        {
-
-            string jsonString = JsonSerializer.Serialize(signalData);
-            string filePath = "settings.json";
-            _sharedVariableService.SendData($"GENERATE START;");
-            _sharedVariableService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
+        public IActionResult StartSignalGeneration([FromBody] SignalDataModel signalData)
+        {           
             try
             {
-                System.IO.File.WriteAllText(filePath, jsonString); 
-            }catch(IOException ex)
-            {
-                Console.WriteLine(ex);
-                return StatusCode(500, $"GenerateController : Post() - {ex.Message}");
+                string jsonString = JsonSerializer.Serialize(signalData);
+                string filePath = "settings.json";
+                _serialportService.SendData($"GENERATE START;");
+                _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
+                System.IO.File.WriteAllText(filePath, jsonString);
+                return Ok(new { message = "GenerateController : StartSignalGeneration() -JSON data has been written to the file." });
+            }
+            catch(IOException ex)
+            {         
+                return StatusCode(500, $"GenerateController : StartSignalGeneration() - {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                return StatusCode(500, $"GenerateController : Post() - Error writing JSON to file - {ex.Message}");
-            }
-            return Ok(new { message = "GenerateController : Post() -JSON data has been written to the file." });
+                return StatusCode(500, $"GenerateController : StartSignalGeneration() - Error writing JSON to file - {ex.Message}");
+            }           
         }
 
+        /// <summary>
+        /// Stops the signal generation process.
+        /// </summary>
         [HttpPost("stop")]
-        public IActionResult PostStopGenerate()
-        {   
-            _sharedVariableService.SendData($"GENERATE STOP;");
-            return Ok(new { message = "GenerateController : PostStopGenerate() - success." });
+        public IActionResult StopSignalGeneration()
+        {
+            try
+            {
+                _serialportService.SendData($"GENERATE STOP;");
+                return Ok(new { message = "GenerateController : StopSignalGeneration() - success." });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, $"SignalGenerationController : StopSignalGeneration() - Error: {ex.Message}");
+            }                       
         }
     }
 }

@@ -11,14 +11,14 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class CaptureController : ControllerBase
     {
-        private readonly ISharedVariableService _sharedVariableService;
+        private readonly ISerialPortService _serialportService;
         private readonly IReadService _readService;
         private readonly IObserverService _observerService;
 
-        public CaptureController(ISharedVariableService sharedVariableService, IReadService readService
+        public CaptureController(ISerialPortService serialportService, IReadService readService
             ,IObserverService observerService)
         {
-            _sharedVariableService = sharedVariableService;
+            _serialportService = serialportService;
             _readService = readService;
             _observerService = observerService;
         }
@@ -30,7 +30,7 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-            _sharedVariableService.SendData($"CAPTURE {value};");
+            _serialportService.SendData($"CAPTURE {value};");
             if (value.Equals("START"))
             {
                
@@ -56,8 +56,8 @@ namespace WaveMaster_Backend.Controllers
         [HttpGet("signaldata")]
         public void GetSignalData()
         {
-            _sharedVariableService.SendData("GET CAPTURE FREQUENCY;");
-            _sharedVariableService.SendData("GET CAPTURE PEAKTOPEAK;");
+            _serialportService.SendData("GET CAPTURE FREQUENCY;");
+            _serialportService.SendData("GET CAPTURE PEAKTOPEAK;");
             //_readService.Mode = "FETCH";           
         }
 
@@ -66,7 +66,7 @@ namespace WaveMaster_Backend.Controllers
         public IActionResult PostRate([FromBody] int rate)
         {
             Console.WriteLine(rate);
-            _sharedVariableService.DataAcquisitionRate = rate;
+            _serialportService.DataAcquisitionRate = rate;
             return Ok(new { message = "ConfigurationController : PostRate() -  Successful!" });
         }
     }

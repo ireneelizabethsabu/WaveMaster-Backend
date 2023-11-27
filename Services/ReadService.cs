@@ -22,11 +22,11 @@ namespace WaveMaster_Backend.Services
         public string ReceivedString { get; set; } = "READ";
         public string Mode { get; set; } = "";
         private readonly IHubContext<PlotDataHub> _hub;
-        private readonly ISharedVariableService _sharedVariableService;
+        private readonly ISerialPortService _sharedVariableService;
         List<PlotData> dataStore = new();
         List<IObserver<List<PlotData>>> observers;
 
-        public ReadService(IHubContext<PlotDataHub> hub, ISharedVariableService sharedVariableService)
+        public ReadService(IHubContext<PlotDataHub> hub, ISerialPortService sharedVariableService)
         { 
             observers = new List<IObserver<List<PlotData>>>();
             _hub = hub;

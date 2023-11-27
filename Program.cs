@@ -28,7 +28,7 @@ namespace WaveMaster_Backend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddSingleton<ISharedVariableService, SerialPortService>();
+            builder.Services.AddSingleton<ISerialPortService, SerialPortService>();
             builder.Services.AddSingleton<IReadService, ReadService>();
             builder.Services.AddSingleton<IObserverService, ObserverService>();
 

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WaveMaster_Backend.Services;
 
 namespace WaveMaster_Backend.Controllers
@@ -16,7 +15,7 @@ namespace WaveMaster_Backend.Controllers
         /// <summary>
         /// Initializes a new instance of the TestController class.
         /// </summary>
-        /// <param name="sharedVariableService">The shared variable service instance.</param>
+        /// <param name="serialportService">The serial port service instance.</param>
         public TestController(ISerialPortService serialportService)
         {
             _serialportService = serialportService;
@@ -28,7 +27,7 @@ namespace WaveMaster_Backend.Controllers
         /// <param name="command">The command to be sent for testing.</param>
         /// <returns>Returns a status indicating success or failure of the test.</returns>
         [HttpPost]
-        public IActionResult TestComponent([FromBody] string command)
+        public IActionResult TestComponents([FromBody] string command)
         {
             _serialportService.SendData(command);
             return Ok(new { message = "TestController : TestComponent() - Test data send success"});

@@ -13,12 +13,12 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
-        private readonly ISharedVariableService _sharedVariableService;
+        private readonly ISerialPortService _serialportService;
         private readonly IReadService _readService;
         
-        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
+        public ConfigurationController(ISerialPortService serialportService,IReadService readService)
         {
-            _sharedVariableService = sharedVariableService;
+            _serialportService = serialportService;
             _readService = readService;
         }
 
@@ -65,7 +65,7 @@ namespace WaveMaster_Backend.Controllers
                     WriteTimeout = 500
                 };
                 _serialPort.Open();
-                _sharedVariableService.serialPort = _serialPort;
+                _serialportService.serialPort = _serialPort;
 
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
@@ -86,10 +86,10 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("disconnect")]
         public IActionResult DisconnectSerialPort()
         {
-            _sharedVariableService.SendData("STOP CONNECTION;");
+            _serialportService.SendData("STOP CONNECTION;");
             try
             {
-                _sharedVariableService.serialPort.Close();
+                _serialportService.serialPort.Close();
             }
             catch (Exception ex)
             {
