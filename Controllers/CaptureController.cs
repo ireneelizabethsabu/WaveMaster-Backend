@@ -1,69 +1,73 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.IO.Ports;
+﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using WaveMaster_Backend.Services;
-using WaveMaster_Backend.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WaveMaster_Backend.Controllers
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Route("[controller]")]
     [ApiController]
     public class CaptureController : ControllerBase
     {
         private readonly ISharedVariableService _sharedVariableService;
+        private readonly IReadService _readService;
+        private readonly IObserverService _observerService;
 
-        public CaptureController(ISharedVariableService sharedVariableService)
+        public CaptureController(ISharedVariableService sharedVariableService, IReadService readService
+            ,IObserverService observerService)
         {
             _sharedVariableService = sharedVariableService;
+            _readService = readService;
+            _observerService = observerService;
         }
-
-        [HttpGet("plotdata")]
-        public PlotDataModel GetPlotData()
-        {
-            PlotDataModel dataModel = new PlotDataModel();
-            dataModel.Timestamp = DateTime.Now;
-            Random r =  new Random();
-            dataModel.Voltage = r.NextDouble();
-
-            _sharedVariableService.SendData("GET CAPTURE DATA;");        
-            
-            return dataModel;
-        }
-
-        [HttpGet("signaldata")]
-        public SignalDataModel GetSignalData()
-        {
-            SignalDataModel dataModel = new SignalDataModel();
-            Random r = new Random();
-            
-            _sharedVariableService.SendData("GET CAPTURE DATA;");
-            
-            while (true)
-            {
-                try
-                {
-                    string message = _sharedVariableService.serialPort.ReadLine();
-                    Console.WriteLine(message);
-                                        
-                    //logic to get data 
-                    dataModel.PeakToPeak = r.NextDouble();
-                    dataModel.Frequency = r.Next(100, 1000);
-                    break;
-                }
-                catch (TimeoutException) { }
-            }
-
-            return dataModel;
-        }
-
-        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>        
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {
-
-            _sharedVariableService.SendData($"{value} CAPTURE;");           
+            _sharedVariableService.SendData($"CAPTURE {value};");
+            if (value.Equals("START"))
+            {
+               
+                _observerService.HubObserver.Subscribe(_readService);
+                Log.Information("Hub Observer Subscribed");
+                _observerService.DbObserver.Subscribe(_readService);
+                Log.Information("Db Observer Subscribed");
+                _readService.Mode = "CAPTURE";
+            }
+            else if (value.Equals("STOP"))
+            {
+                _readService.Mode = "READ";
+                //UNSUBSCRIBE OBSERVERS HERE
+                _observerService.HubObserver.Unsubscribe();
+                Log.Information("Hub Observer UnSubscribed");
+                _observerService.DbObserver.Unsubscribe();
+                Log.Information("Db Observer UnSubscribed");
+            }
             return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
+        }
+
+
+        [HttpGet("signaldata")]
+        public void GetSignalData()
+        {
+            _sharedVariableService.SendData("GET CAPTURE FREQUENCY;");
+            _sharedVariableService.SendData("GET CAPTURE PEAKTOPEAK;");
+            //_readService.Mode = "FETCH";           
+        }
+
+
+        [HttpPost("rate")]
+        public IActionResult PostRate([FromBody] int rate)
+        {
+            Console.WriteLine(rate);
+            _sharedVariableService.DataAcquisitionRate = rate;
+            return Ok(new { message = "ConfigurationController : PostRate() -  Successful!" });
         }
     }
 }

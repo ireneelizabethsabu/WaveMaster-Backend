@@ -1,78 +1,102 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
-using System.Net;
 using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
+using Serilog;
 
 namespace WaveMaster_Backend.Controllers
 {
+    /// <summary>
+    /// API controller to configure,connect and disconnect serial port.
+    /// </summary>
     [Route("[controller]")]
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
-
         private readonly ISharedVariableService _sharedVariableService;
+        private readonly IReadService _readService;
         
-        public ConfigurationController(ISharedVariableService sharedVariableService)
+        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
         {
             _sharedVariableService = sharedVariableService;
+            _readService = readService;
         }
 
+        /// <summary>
+        /// Retrieves available port names
+        /// </summary>
+        /// <returns>Returns list of available port names on success and 
+        /// error message in case of failure</returns>
         [HttpGet]
-        public IEnumerable<string> GetPortName()
+        public IActionResult GetAvailablePortName()
         {
-            var ports = SerialPort.GetPortNames();
-            return ports;
-        }
-      
-        [HttpPost("connect")]
-        public IActionResult PostConnect(ConenctionParamsModel value)
-        {
-            //Console.WriteLine($"Port Name : {value.portName}");
-            //Console.WriteLine($"Stop Bit : {value.stopBit}");
-            //Console.WriteLine($"Data Bit : {value.dataBit}");
-            //Console.WriteLine($"Baud Rate : {value.baudRate}");
-            //Console.WriteLine($"Parity : {value.parity}");
-            Console.WriteLine(value);
-            SerialPort _serialPort = new SerialPort();
-            _serialPort.PortName = value.portName;
-            _serialPort.BaudRate = value.baudRate;
-            _serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), value.parity, true);
-            _serialPort.DataBits = value.dataBit;
-            _serialPort.StopBits = (StopBits)value.stopBit;
-            _serialPort.Handshake = (Handshake)Enum.Parse(typeof(Handshake), "None", true);
-            _serialPort.ReadTimeout = 500;
-            _serialPort.WriteTimeout = 500;
             try
             {
-                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_sharedVariableService.DataReceivedHandler);
-                _serialPort.Open(); 
+                var ports = SerialPort.GetPortNames();
+                return Ok(ports);
             }
-            catch(Exception ex) {
-                Console.WriteLine(ex);
-                return StatusCode(500, $"ConfigurationController : PostConnect() : {ex}");
+            catch (Exception ex)
+            {
+                Log.Error("GetAvailablePortName() " + ex.ToString());
+                return StatusCode(500, $"Error retrieving port names: {ex.Message}");
             }
-
-            _sharedVariableService.serialPort = _serialPort;
-
-            return Ok(new { message = "ConfigurationController : PostConnect() - Connected Successfully!" });
         }
 
+        /// <summary>
+        /// Connects to the serial port based on provided parameters and starts a thread to
+        /// listen to the serial port.
+        /// </summary>
+        /// <param name="value">Connection parameters.</param>
+        /// <returns>Returns status indicating successful connection or error.</returns>
+        [HttpPost("connect")]
+        public IActionResult ConnectSerialPort(ConenctionParamsModel value)
+        {            
+            try
+            {
+                SerialPort _serialPort = new SerialPort
+                {
+                    PortName = value.portName,
+                    BaudRate = value.baudRate,
+                    Parity = (Parity)Enum.Parse(typeof(Parity), value.parity, true),
+                    DataBits = value.dataBit,
+                    StopBits = (StopBits)value.stopBit,
+                    Handshake = (Handshake)Enum.Parse(typeof(Handshake), "None", true),
+                    ReadTimeout = 500,
+                    WriteTimeout = 500
+                };
+                _serialPort.Open();
+                _sharedVariableService.serialPort = _serialPort;
+
+                Thread rxThread = new Thread(_readService.DataReceivedHandler);
+                rxThread.Start();
+            }
+            catch(Exception ex) {
+                Log.Error(ex.ToString());
+                return StatusCode(500, $"ConfigurationController : ConnectSerialPort() : {ex}");
+            }          
+            return Ok(new { message = "ConfigurationController : ConnectSerialPort() - Connected Successfully!" });
+        }
+
+        /// <summary>
+        /// Disconnects from the serial port.
+        /// </summary>
+        /// <returns>
+        /// Returns status indicating successful disconnection or error.
+        /// </returns>
         [HttpPost("disconnect")]
-        public IActionResult PostDisconnect()
+        public IActionResult DisconnectSerialPort()
         {
             _sharedVariableService.SendData("STOP CONNECTION;");
             try
             {
-                _sharedVariableService.serialPort.DataReceived -= _sharedVariableService.DataReceivedHandler;
                 _sharedVariableService.serialPort.Close();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                return StatusCode(500, $"ConfigurationController : PostDisconnect() : {ex.Message}");
+                Log.Error(ex.ToString());
+                return StatusCode(500, $"ConfigurationController : DisconnectSerialPort() : {ex.Message}");
             }
-            return Ok(new { message = "ConfigurationController : PostDisconnect() - Connection Disconnected Successfully!" });
+            return Ok(new { message = "ConfigurationController : DisconnectSerialPort() - Connection Disconnected Successfully!" });
         }
     }
 }
