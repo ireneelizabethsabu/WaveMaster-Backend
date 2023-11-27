@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using NuGet.DependencyResolver;
 using Serilog;
 using System;
 using System.Diagnostics;
@@ -65,14 +66,11 @@ namespace WaveMaster_Backend.Services
                 {
                     var buffer = new byte[1024];
                     if (sp.BytesToRead == 0)
-                        continue;
-                    DateTime beforeRead = DateTime.Now;
+                        continue;            
                     int bytesRead = sp.BaseStream.Read(buffer, 0, 1024);
-                    DateTime afterRead = DateTime.Now;
-
-                    Log.Information($"{beforeRead.ToString("HH:mm:ss:fff")}-----------------------{afterRead.ToString("HH:mm:ss:fff")}");
+                                    
                     string asciiString = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    //Console.WriteLine(asciiString);
+                    
                     if(asciiString.Contains("Capture Stopped;"))
                     {
                         Log.Information("Capture Stopped; received");
@@ -120,7 +118,7 @@ namespace WaveMaster_Backend.Services
                                     time = DateTime.Now
                                 };
                                 dataStore.Add(pd);
-                                Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
+                                //Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
                             }
                             else
                             {
@@ -148,7 +146,7 @@ namespace WaveMaster_Backend.Services
                                         time = DateTime.Now
                                     };
                                     dataStore.Add(pd);
-                                    Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
+                                    //Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
                                 }
                                 else
                                 {
@@ -165,8 +163,8 @@ namespace WaveMaster_Backend.Services
 
                     }
                     else
-                    {
-
+                    {                       
+                        await _hub.Clients.All.SendAsync("test", asciiString);
                     }   
                 }
                 catch (Exception ex)
