@@ -31,7 +31,7 @@ namespace WaveMaster_Backend
             builder.Services.AddSingleton<ISerialPortService, SerialPortService>();
             builder.Services.AddSingleton<IReadService, ReadService>();
             builder.Services.AddSingleton<IObserverService, ObserverService>();
-
+            builder.Services.AddSingleton<IFileService, FileService>();
             builder.Services.AddSignalR();
 
             var app = builder.Build();

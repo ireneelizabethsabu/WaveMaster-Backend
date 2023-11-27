@@ -35,6 +35,7 @@ namespace WaveMaster_Backend.Controllers
         {           
             try
             {
+                // TODO file service read method
                 string filePath = "settings.json";
                 string jsonString = System.IO.File.ReadAllText(filePath);
                 var settings = JsonSerializer.Deserialize<dynamic>(jsonString);
@@ -65,12 +66,13 @@ namespace WaveMaster_Backend.Controllers
         public IActionResult StartSignalGeneration([FromBody] SignalDataModel signalData)
         {           
             try
-            {
-                string jsonString = JsonSerializer.Serialize(signalData);
-                string filePath = "settings.json";
+            {             
                 _serialportService.SendData($"GENERATE START;");
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
-                System.IO.File.WriteAllText(filePath, jsonString);
+                //file write method
+
+
+
                 return Ok(new { message = "GenerateController : StartSignalGeneration() -JSON data has been written to the file." });
             }
             catch(IOException ex)
