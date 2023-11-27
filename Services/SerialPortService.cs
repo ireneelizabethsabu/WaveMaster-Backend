@@ -6,7 +6,7 @@ using WaveMaster_Backend.Models;
 
 namespace WaveMaster_Backend.Services
 {
-    public interface ISharedVariableService
+    public interface ISerialPortService
     {
         SerialPort serialPort { get; set; }
         
@@ -15,7 +15,7 @@ namespace WaveMaster_Backend.Services
         public int DataAcquisitionRate {  get; set; }
 
     }
-    public class CommunicationService : ISharedVariableService
+    public class SerialPortService : ISerialPortService
     {
         
         public SerialPort serialPort{ get; set; }
@@ -26,7 +26,7 @@ namespace WaveMaster_Backend.Services
         private readonly IHubContext<PlotDataHub> _hub;
 
         public int count = 0;
-        public CommunicationService(
+        public SerialPortService(
             IHubContext<PlotDataHub> hub)
         {
             _hub = hub;
