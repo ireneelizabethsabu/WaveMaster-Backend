@@ -9,6 +9,9 @@ using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Controllers
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Route("[controller]")]
     [ApiController]
     public class CaptureController : ControllerBase
@@ -24,7 +27,11 @@ namespace WaveMaster_Backend.Controllers
             _readService = readService;
             _observerService = observerService;
         }
-               
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>        
         [HttpPost("plotcommand")]
         public IActionResult PostCommand([FromBody] string value)
         {

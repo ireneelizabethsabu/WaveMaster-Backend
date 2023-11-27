@@ -66,8 +66,11 @@ namespace WaveMaster_Backend.Services
                     var buffer = new byte[1024];
                     if (sp.BytesToRead == 0)
                         continue;
-
+                    DateTime beforeRead = DateTime.Now;
                     int bytesRead = sp.BaseStream.Read(buffer, 0, 1024);
+                    DateTime afterRead = DateTime.Now;
+
+                    Log.Information($"{beforeRead.ToString("HH:mm:ss:fff")}-----------------------{afterRead.ToString("HH:mm:ss:fff")}");
                     string asciiString = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                     //Console.WriteLine(asciiString);
                     if(asciiString.Contains("Capture Stopped;"))
@@ -85,104 +88,92 @@ namespace WaveMaster_Backend.Services
                         Log.Information("Capture Started; received");
                         Mode = "CAPTURE";
                     }
-                    else
-                    {
-                        var dataBuffer = new byte[1024];
-                        var indexOfSync = 0;
-                        var lengthOfBuffer = bytesRead;
-                        bool sync = false;
+                    else if(Mode.Equals("CAPTURE"))
+                    {                                                             
                         var byteStore = new byte[2];
-                        if (asciiString.Contains("SYNC;"))
+                        bool hasSync = asciiString.Contains("SYNC;");
+                        int startIndex = hasSync ? asciiString.IndexOf(";SYNC;") : 0;
+                        int bufferLength = hasSync ? startIndex : bytesRead;
+
+                        if (flag == 1)
                         {
-                            sync = true;
-                            indexOfSync = asciiString.IndexOf(";SYNC;");
-                            Log.Information($"SYNC read at index {indexOfSync}");
-                            Array.Copy(buffer, 0, dataBuffer, 0, indexOfSync);
-                            lengthOfBuffer = indexOfSync;
-                        }
-                        else
-                        {
-                            sync = false;
-                            dataBuffer = buffer;
-                            lengthOfBuffer = bytesRead;
-                        }
-                        if (Mode.Equals("CAPTURE"))
-                        {
-                            if (flag == 1)
+                            byteStore[1] = buffer[0];
+                            int data = BitConverter.ToUInt16(byteStore, 0);
+
+
+                            PlotData pd = new PlotData
                             {
-                                byteStore[1] = dataBuffer[0];
-                                int data = BitConverter.ToUInt16(byteStore, 0);
-                                //Console.Write(data);
-                                PlotData pd = new PlotData();
-                                pd.voltage = data * (3.3 / 4096);
-                                pd.time = DateTime.Now;
-                                dataStore.Add(pd);
-                            }
-                            for (int i = flag; i < lengthOfBuffer ; i+=2)
-                            {                                
-                                if(i+1 < lengthOfBuffer)
+                                voltage = data * (3.3 / 4096),
+                                time = DateTime.Now
+                            };
+                            dataStore.Add(pd);
+                        }
+                        for (int i = flag; i < bufferLength ; i+=2)
+                        {                                
+                            if(i+1 < bufferLength)
+                            {
+                                flag = 0;
+                                int data = BitConverter.ToUInt16(buffer, i);
+                                PlotData pd = new PlotData
                                 {
-                                    flag = 0;
-                                    //var temp = dataBuffer[i];
-                                    //dataBuffer[i] = dataBuffer[i + 1];
-                                    //dataBuffer[i + 1] = temp;
-                                    int data = BitConverter.ToUInt16(dataBuffer, i);
-                                    //Console.Write(data);
-                                    PlotData pd = new PlotData();
-                                    pd.voltage = data * (3.3/4096);
-                                    pd.time = DateTime.Now;
+                                    voltage = data * (3.3 / 4096),
+                                    time = DateTime.Now
+                                };
+                                dataStore.Add(pd);
+                                Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
+                            }
+                            else
+                            {
+                                flag =  1;
+                                byteStore[0] = buffer[i];
+                            }
+
+                            if(dataStore.Count() > 200)
+                            {
+                                NotifyObservers();
+                                dataStore.Clear();
+                            }
+                        }
+                        if(hasSync)
+                        {
+                            for (int i = startIndex + 6 ; i < bytesRead; i = i + 2)
+                            {
+                                if (i + 1 < bytesRead)
+                                {
+                                    flag = 0;                                   
+                                    int data = BitConverter.ToUInt16(buffer, i);
+                                    PlotData pd = new PlotData
+                                    {
+                                        voltage = data * (3.3 / 4096),
+                                        time = DateTime.Now
+                                    };
                                     dataStore.Add(pd);
-                                    Console.WriteLine($"{pd.voltage} - {pd.time} ");
+                                    Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
                                 }
                                 else
                                 {
-                                    flag =  1;
-                                    byteStore[0] = dataBuffer[i];
+                                    flag = 1;
+                                    byteStore[0] = buffer[i];
                                 }
-
-                                if(dataStore.Count() > 200)
+                                if (dataStore.Count() > 200)
                                 {
                                     NotifyObservers();
                                     dataStore.Clear();
                                 }
                             }
-                            if(sync)
-                            {
-                                for (int i = indexOfSync + 6 ; i < bytesRead; i = i + 2)
-                                {
-                                    //Console.WriteLine((char)buffer[indexOfSync + 5]);
-                                    if (i + 1 < bytesRead)
-                                    {
-                                        flag = 0;
-                                        //var temp = buffer[i];
-                                        //buffer[i] = buffer[i + 1];
-                                        //buffer[i + 1] = temp; 
-                                        int data = BitConverter.ToUInt16(buffer, i);
-                                        PlotData pd = new PlotData();
-                                        pd.voltage = data * (3.3 / 4096);
-                                        pd.time = DateTime.Now;
-                                        dataStore.Add(pd);
-                                        Console.WriteLine($"{pd.voltage} - {pd.time} ");
-                                    }
-                                    else
-                                    {
-                                        flag = 1;
-                                    }
-                                    if (dataStore.Count() > 200)
-                                    {
-                                        NotifyObservers();
-                                        dataStore.Clear();
-                                    }
-                                }
-                            }                               
                         }
-                    }        
+
+                    }
+                    else
+                    {
+
+                    }   
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
-                }       
-            }            
+                }
+            }           
         }
         public void NotifyObservers()
         {

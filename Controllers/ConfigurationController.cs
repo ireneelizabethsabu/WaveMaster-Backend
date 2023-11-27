@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using Serilog;
 using System.IO.Ports;
-using WaveMaster_Backend.HubConfig;
-using WaveMaster_Backend.Models;
-using WaveMaster_Backend.Observers;
 using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
 
