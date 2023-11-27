@@ -69,12 +69,16 @@ namespace WaveMaster_Backend.Controllers
 
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
+
+                return Ok(new { message = "ConfigurationController : ConnectSerialPort() - Connected Successfully!" });
+            }
+            catch(ArgumentException ex)
+            {
+                return StatusCode(500, ex.Message);
             }
             catch(Exception ex) {
-                Log.Error(ex.ToString());
                 return StatusCode(500, $"ConfigurationController : ConnectSerialPort() : {ex}");
-            }          
-            return Ok(new { message = "ConfigurationController : ConnectSerialPort() - Connected Successfully!" });
+            }                      
         }
 
         /// <summary>
