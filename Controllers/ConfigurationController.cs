@@ -77,6 +77,7 @@ namespace WaveMaster_Backend.Controllers
                 return StatusCode(500, ex.Message);
             }
             catch(Exception ex) {
+                Log.Error(ex.Message);
                 return StatusCode(500,new {message = "unable to connect to serial port. Check parameters and try again"});
             }                      
         }
