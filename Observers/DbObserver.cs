@@ -10,7 +10,7 @@ namespace WaveMaster_Backend.Observers
     /// </summary>
     public class DbObserver : IObserver<List<PlotData>>
     {
-        private IDisposable _unsubscriber;
+        private IDisposable? _unsubscriber;
         private readonly WaveMasterDbContext _context;
         private readonly Mutex _mutex = new(false);
 
