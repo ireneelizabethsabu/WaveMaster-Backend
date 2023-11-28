@@ -14,8 +14,7 @@ namespace WaveMaster_Backend.Controllers
     public class ConfigurationController : ControllerBase
     {
         private readonly ISerialPortService _serialportService;
-        private readonly IReadService _readService;
-        
+        private readonly IReadService _readService;       
         public ConfigurationController(ISerialPortService serialportService,IReadService readService)
         {
             _serialportService = serialportService;
@@ -38,7 +37,7 @@ namespace WaveMaster_Backend.Controllers
             catch (Exception ex)
             {
                 Log.Error("GetAvailablePortName() " + ex.ToString());
-                return StatusCode(500, $"Error retrieving port names: {ex.Message}");
+                return StatusCode(500, $"Error retrieving port names : {ex.Message}");
             }
         }
 
@@ -67,6 +66,7 @@ namespace WaveMaster_Backend.Controllers
                 _serialPort.Open();
                 _serialportService.serialPort = _serialPort;
 
+                //listen to the incoming data on serial port
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
 

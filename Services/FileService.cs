@@ -8,7 +8,7 @@ namespace WaveMaster_Backend.Services
     public interface IFileService
     {
         public void FileWrite(SignalDataModel signalData);
-        public SignalDataModel FileRead();
+        public object FileRead();
     }
     public class FileService : IFileService
     {
@@ -27,14 +27,14 @@ namespace WaveMaster_Backend.Services
         }
 
 
-        public SignalDataModel FileRead()
+        public object FileRead()
         {
             try
             {
                 string filePath = "settings.json";
                 string jsonString = File.ReadAllText(filePath);
                 var settings = JsonSerializer.Deserialize<dynamic>(jsonString);
-                return settings ?? throw new NullReferenceException("settings null");
+                return settings;
             }
             catch (FileNotFoundException ex)
             {

@@ -14,14 +14,15 @@ namespace WaveMaster_Backend.Controllers
     public class GenerateController : ControllerBase
     {
         private readonly ISerialPortService _serialportService;
-
+        private readonly IFileService _fileService;
         /// <summary>
         /// Initializes a new instance of the GenerateController class.
         /// </summary>
         /// <param name="serialportService">The serial port service instance.</param>
-        public GenerateController(ISerialPortService serialportService)
+        public GenerateController(ISerialPortService serialportService, IFileService fileService)
         {
             _serialportService = serialportService;
+            _fileService = fileService;
         }
 
         /// <summary>
@@ -35,10 +36,7 @@ namespace WaveMaster_Backend.Controllers
         {           
             try
             {
-                // TODO file service read method
-                string filePath = "settings.json";
-                string jsonString = System.IO.File.ReadAllText(filePath);
-                var settings = JsonSerializer.Deserialize<dynamic>(jsonString);
+                var settings = _fileService.FileRead();
                 return Ok(settings);
             }
             catch (FileNotFoundException ex)
@@ -70,7 +68,7 @@ namespace WaveMaster_Backend.Controllers
                 _serialportService.SendData($"GENERATE START;");
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
                 //file write method
-
+                _fileService.FileWrite(signalData);
 
 
                 return Ok(new { message = "GenerateController : StartSignalGeneration() -JSON data has been written to the file." });
