@@ -50,8 +50,7 @@ namespace WaveMaster_Backend.Services
         /// </summary>
         /// <returns>SignalDataModel object</returns>
         /// <exception cref="IOException">handle IOException</exception>
-        /// <exception cref="JsonException">handle JsonException when there's an issue parsing JSON data</exception>
-        
+        /// <exception cref="JsonException">handle JsonException when there's an issue parsing JSON data</exception>        
         public SignalDataModel FileRead()
         {
             try
