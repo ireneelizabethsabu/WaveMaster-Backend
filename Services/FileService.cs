@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using WaveMaster_Backend.Observers;
 using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Services

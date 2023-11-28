@@ -74,11 +74,11 @@ namespace WaveMaster_Backend.Controllers
             }
             catch(ArgumentException ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new { message = ex.Message });
             }
             catch(Exception ex) {
                 Log.Error(ex.Message);
-                return StatusCode(500,new {message = "unable to connect to serial port. Check parameters and try again"});
+                return StatusCode(500,new {message = "Unable to connect to serial port, check if connected elsewhere."});
             }                      
         }
 
