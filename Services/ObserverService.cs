@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;

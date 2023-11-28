@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Serilog;
 using System.IO.Ports;
 using WaveMaster_Backend.HubConfig;
-using WaveMaster_Backend.Models;
 
 namespace WaveMaster_Backend.Services
 {

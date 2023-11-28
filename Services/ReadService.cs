@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using NuGet.DependencyResolver;
 using Serilog;
-using System;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Net.Sockets;
@@ -115,6 +113,7 @@ namespace WaveMaster_Backend.Services
                     else if (asciiString.Contains("Capture Started;"))
                     {
                         Log.Information("Capture Started; received");
+                        await _hub.Clients.All.SendAsync("captureControl", "START CAPTURE");
                         Mode = "CAPTURE";
                     }
                     else if(Mode.Equals("CAPTURE"))
