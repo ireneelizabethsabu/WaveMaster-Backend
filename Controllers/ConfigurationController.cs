@@ -37,7 +37,7 @@ namespace WaveMaster_Backend.Controllers
             catch (Exception ex)
             {
                 Log.Error("GetAvailablePortName() " + ex.ToString());
-                return StatusCode(500, $"Error retrieving port names : {ex.Message}");
+                return StatusCode(500, new {message = "Unable to fetch ports"});
             }
         }
 
@@ -65,7 +65,7 @@ namespace WaveMaster_Backend.Controllers
                 };
                 _serialPort.Open();
                 _serialportService.serialPort = _serialPort;
-
+                _serialportService.SendData("RESET;");
                 //listen to the incoming data on serial port
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
@@ -77,7 +77,7 @@ namespace WaveMaster_Backend.Controllers
                 return StatusCode(500, ex.Message);
             }
             catch(Exception ex) {
-                return StatusCode(500, $"ConfigurationController : ConnectSerialPort() : {ex}");
+                return StatusCode(500,new {message = "unable to connect to serial port. Check parameters and try again"});
             }                      
         }
 
@@ -98,7 +98,7 @@ namespace WaveMaster_Backend.Controllers
             catch (Exception ex)
             {
                 Log.Error(ex.ToString());
-                return StatusCode(500, $"ConfigurationController : DisconnectSerialPort() : {ex.Message}");
+                return StatusCode(500, $"Error disconnecting from serial port");
             }
             return Ok(new { message = "ConfigurationController : DisconnectSerialPort() - Connection Disconnected Successfully!" });
         }

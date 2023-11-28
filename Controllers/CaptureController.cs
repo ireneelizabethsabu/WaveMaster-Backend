@@ -5,7 +5,7 @@ using WaveMaster_Backend.Services;
 namespace WaveMaster_Backend.Controllers
 {
     /// <summary>
-    /// 
+    /// Controller for signal capturing 
     /// </summary>
     [Route("[controller]")]
     [ApiController]
@@ -15,6 +15,12 @@ namespace WaveMaster_Backend.Controllers
         private readonly IReadService _readService;
         private readonly IObserverService _observerService;
 
+        /// <summary>
+        /// Initializes an instance of Capture controller by injecting required dependencies. 
+        /// </summary>
+        /// <param name="serialportService"> The serial port service instance</param>
+        /// <param name="readService">The read service instance</param>
+        /// <param name="observerService">observer service instance</param>
         public CaptureController(ISerialPortService serialportService, IReadService readService
             ,IObserverService observerService)
         {
@@ -22,50 +28,70 @@ namespace WaveMaster_Backend.Controllers
             _readService = readService;
             _observerService = observerService;
         }
+
         /// <summary>
-        /// 
+        /// Handles sending commands to the serial port based on the received value.
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>        
+        /// <param name="command">start or stop command</param>
+        /// <returns>Returns an HTTP action result indicating the status of the operation.</returns>        
         [HttpPost("plotcommand")]
-        public IActionResult PostCommand([FromBody] string value)
+        public IActionResult PostCommand([FromBody] string command)
         {
-            _serialportService.SendData($"CAPTURE {value};");
-            if (value.Equals("START"))
+            try
             {
-               
-                _observerService.HubObserver.Subscribe(_readService);
-                Log.Information("Hub Observer Subscribed");
-                _observerService.DbObserver.Subscribe(_readService);
-                Log.Information("Db Observer Subscribed");
-                _readService.Mode = "CAPTURE";
+                _serialportService.SendData($"CAPTURE {command};");
+                if (command.Equals("START"))
+                {
+                    _observerService.SubscribeObservers();
+                    _readService.Mode = "CAPTURE";
+                }
+                else if (command.Equals("STOP"))
+                {
+                    _observerService.UnsubscribeObservers();
+                    _readService.Mode = "READ";
+                }
+                return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
             }
-            else if (value.Equals("STOP"))
+            catch (Exception ex)
             {
-                _readService.Mode = "READ";
-                //UNSUBSCRIBE OBSERVERS HERE
-                _observerService.HubObserver.Unsubscribe();
-                Log.Information("Hub Observer UnSubscribed");
-                _observerService.DbObserver.Unsubscribe();
-                Log.Information("Db Observer UnSubscribed");
+                Log.Error($"Error sending command: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
             }
-            return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
+            
         }
 
-
+        /// <summary>
+        /// Requests capture frequency and peak-to-peak data from the serial port.
+        /// </summary>
+        /// /// <returns>
+        /// Returns an HTTP action result indicating the status of the operation.
+        /// </returns>
         [HttpGet("signaldata")]
-        public void GetSignalData()
+        public IActionResult GetSignalData()
         {
-            _serialportService.SendData("GET CAPTURE FREQUENCY;");
-            _serialportService.SendData("GET CAPTURE PEAKTOPEAK;");
-            //_readService.Mode = "FETCH";           
+            try
+            {
+                _serialportService.SendData("GET CAPTURE FREQUENCY;");
+                _serialportService.SendData("GET CAPTURE PEAKTOPEAK;");
+
+                return Ok(new { message = "Signal data requested successfully!" });
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Error getting signal data: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+                    
         }
 
-
+        /// <summary>
+        /// Sets the data acquisition rate for the serial port.
+        /// </summary>
+        /// <param name="rate">The data acquisition rate to be set.</param>
+        /// <returns>Returns an HTTP action result indicating the status of the operation.</returns>
         [HttpPost("rate")]
-        public IActionResult PostRate([FromBody] int rate)
+        public IActionResult SetDataAcquisitionRate([FromBody] int rate)
         {
-            Console.WriteLine(rate);
             _serialportService.DataAcquisitionRate = rate;
             return Ok(new { message = "ConfigurationController : PostRate() -  Successful!" });
         }
