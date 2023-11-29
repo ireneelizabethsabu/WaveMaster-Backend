@@ -99,13 +99,26 @@ namespace WaveMaster_Backend.Services
                     int bytesRead = sp.BaseStream.Read(buffer, 0, 1024);
                                     
                     string asciiString = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    
-                    if(asciiString.Contains("Capture Stopped;"))
+                    Console.WriteLine(asciiString);
+                    if (Mode.Equals("TEST"))
+                    {
+                        if (asciiString.Contains("User Mode Started;"))
+                        {
+                            Mode = "";
+                        }
+                        Console.WriteLine(asciiString);
+                        await _hub.Clients.All.SendAsync("test", asciiString);
+                    }
+                    else if(asciiString.Contains("Capture Stopped;"))
                     {
                         Log.Information("Capture Stopped; received");
                         await _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
                         Mode = "";
-                    }else if (asciiString.Contains("DATA"))
+                    }else if (asciiString.Contains("Test Mode Started;"))
+                    {
+                        Mode = "TEST";
+                    }
+                    else if (asciiString.Contains("DATA"))
                     {
                         Log.Information("Peak to peak and frequency data; received");
                         await _hub.Clients.All.SendAsync("fetchData", asciiString);
@@ -190,14 +203,11 @@ namespace WaveMaster_Backend.Services
                             }
                         }
                     }
-                    else
-                    {                       
-                        await _hub.Clients.All.SendAsync("test", asciiString);
-                    }   
+                    
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
+                    Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
                 }
             }           
         }

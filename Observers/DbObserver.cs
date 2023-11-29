@@ -69,15 +69,12 @@ namespace WaveMaster_Backend.Observers
                 await Task.Run(() => {
                     _mutex.WaitOne();
                     _context.BulkInsert(dataStore);
+                    _mutex.ReleaseMutex();
                 });
             }
             catch (Exception ex)
             {
                 Log.Error($"Error writing to db : {ex.Message}");
-            }
-            finally
-            {
-                _mutex.ReleaseMutex();
             }
         }        
     }

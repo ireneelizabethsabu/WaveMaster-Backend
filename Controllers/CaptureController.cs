@@ -30,6 +30,37 @@ namespace WaveMaster_Backend.Controllers
         }
 
         /// <summary>
+        /// Subscribe and unsubscribe observers based on board status
+        /// </summary>
+        /// <param name="command">board_start or board_stop command</param>
+        /// <returns>Returns an HTTP action result indicating the status of the operation.</returns>
+        [HttpPost("observers")]
+        public IActionResult HandleObservers([FromBody] string command)
+        {
+            try
+            {
+
+                if (command.Equals("BOARD_START"))
+                {
+                    _observerService.SubscribeObservers();
+
+                }
+                else if (command.Equals("BOARD_STOP"))
+                {
+                    _observerService.UnsubscribeObservers();
+
+                }
+                return Ok(new { message = "ConfigurationController : HandleObservers() -  Successful!" });
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error with observers: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+
+        }
+
+        /// <summary>
         /// Handles sending commands to the serial port based on the received value.
         /// </summary>
         /// <param name="command">start or stop command</param>
@@ -39,17 +70,7 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData($"CAPTURE {command};");
-                if (command.Equals("START"))
-                {
-                    _observerService.SubscribeObservers();
-                    _readService.Mode = "CAPTURE";
-                }
-                else if (command.Equals("STOP"))
-                {
-                    _observerService.UnsubscribeObservers();
-                    _readService.Mode = "READ";
-                }
+                _serialportService.SendData($"CAPTURE {command};");               
                 return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
             }
             catch (Exception ex)
