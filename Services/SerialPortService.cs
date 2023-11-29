@@ -52,8 +52,7 @@ namespace WaveMaster_Backend.Services
                 serialPort.DiscardOutBuffer();
             }catch(Exception ex)
             {
-                Console.WriteLine(ex);
-                return;
+                _hub.Clients.All.SendAsync("captureControl", "DEVICE DISCONNECTED");
             }            
         }
     }
