@@ -1,29 +1,60 @@
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using WaveMaster_Backend.HubConfig;
+using WaveMaster_Backend.Models;
+using WaveMaster_Backend.Services;
 
 namespace WaveMaster_Backend
 {
+    /// <summary>
+    /// Main program class for the application.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Main method to start the application.
+        /// </summary>
+        /// <param name="args">Command-line arguments.</param>
         public static void Main(string[] args)
         {
+            // Create a builder for the web application.
             var builder = WebApplication.CreateBuilder(args);
+
+            // Register controllers in the application.
             builder.Services.AddControllers();
 
-            // Add services to the container.
+            // Add authorization services to the container.
             builder.Services.AddAuthorization();
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // Add Entity Framework DbContext to the container with a singleton lifetime.
+            builder.Services.AddDbContext<WaveMasterDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")), ServiceLifetime.Singleton);
+
+            // Add API Explorer for endpoints.
             builder.Services.AddEndpointsApiExplorer();
+
+            // Add Swagger documentation generation.
             builder.Services.AddSwaggerGen();
 
+            // Add singleton services for various functionalities.
+            builder.Services.AddSingleton<ISerialPortService, SerialPortService>();
+            builder.Services.AddSingleton<IReadService, ReadService>();
+            builder.Services.AddSingleton<IObserverService, ObserverService>();
+            builder.Services.AddSingleton<IFileService, FileService>();
+            builder.Services.AddSignalR();
+
+            // Build the application.
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                // Enable Swagger and SwaggerUI for development environment.
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
+            // Enable CORS for all origins, headers, and methods.
             app.UseCors(o =>
             {
                 o.AllowAnyOrigin();
@@ -31,44 +62,22 @@ namespace WaveMaster_Backend
                 o.AllowAnyMethod();
             });
 
-            //app.UseHttpsRedirection();
+            // Configure Serilog for logging.
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .WriteTo.Console()
+               .WriteTo.File("logs/demo.txt", rollingInterval: RollingInterval.Day)
+               .CreateLogger();
 
+
+            // Enable authorization and map controllers and SignalR hub.
             app.UseAuthorization();
-
-            var summaries = new[]
-            {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast")
-            .WithOpenApi();
-
-
-            app.UseCors(o =>
-            {
-                o.AllowAnyOrigin();
-                o.AllowAnyMethod();
-                o.AllowAnyHeader();
-            });
-            app.UseAuthorization();
-
-            SerialPortConfig spc = new SerialPortConfig();
-            Task.Run(() => spc.SerialPortConfiguration());
-
             app.MapControllers();
+            app.MapHub<PlotDataHub>("/plotValue");
+
+            // Run the application.
             app.Run();
         }
+        
     }
 }

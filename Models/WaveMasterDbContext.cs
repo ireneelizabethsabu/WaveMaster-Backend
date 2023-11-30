@@ -4,10 +4,10 @@ namespace WaveMaster_Backend.Models
 {
     public class WaveMasterDbContext : DbContext
     {
-        public WaveMasterDbContext(DbContextOptions<WaveMasterDbContext> options)
+        public WaveMasterDbContext(DbContextOptions options)
             : base(options)
-        {
+        { }
 
-        }
+        public DbSet<PlotData> plotDatas { get; set; } = default!;
     }
 }

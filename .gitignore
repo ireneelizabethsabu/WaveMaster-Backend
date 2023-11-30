@@ -1,4 +1,8 @@
 ### Windows ###
+
+settings.json
+logs/
+
 # Windows thumbnail cache files
 Thumbs.db
 Thumbs.db:encryptable
