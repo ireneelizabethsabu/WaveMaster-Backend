@@ -66,6 +66,7 @@ namespace WaveMaster_Backend.Controllers
                 _serialPort.Open();
                 _serialportService.serialPort = _serialPort;
                 _serialportService.SendData("RESET;");
+                _serialportService.SendData("GENERATE SINE 100 3;");
                 //listen to the incoming data on serial port
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
