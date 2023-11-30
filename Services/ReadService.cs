@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
+using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Services
 {
@@ -128,6 +129,10 @@ namespace WaveMaster_Backend.Services
                         Log.Information("Capture Started; received");
                         await _hub.Clients.All.SendAsync("captureControl", "START CAPTURE");
                         Mode = "CAPTURE";
+                    }
+                    else if (asciiString.Contains("EEPROM"))
+                    {                        
+                        await _hub.Clients.All.SendAsync("defaultData", asciiString);
                     }
                     else if(Mode.Equals("CAPTURE"))
                     {                                                             

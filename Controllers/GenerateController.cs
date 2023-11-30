@@ -71,7 +71,7 @@ namespace WaveMaster_Backend.Controllers
                 _fileService.FileWrite(signalData);
 
 
-                return Ok(new { message = "GenerateController : StartSignalGeneration() -JSON data has been written to the file." });
+                return Ok(new { message = $"DEVICE GENERATING {signalData.SignalType.ToUpper()} SIGNAL" });
             }
             catch(IOException ex)
             {         
@@ -98,6 +98,36 @@ namespace WaveMaster_Backend.Controllers
             {
                 return StatusCode(500, $"SignalGenerationController : StopSignalGeneration() - Error: {ex.Message}");
             }                       
+        }
+
+        [HttpPost("eepromsave")]
+        public IActionResult SaveToEEPROM([FromBody] SignalDataModel signalData)
+        {
+            try
+            {
+                _serialportService.SendData($"SET GENERATOR CONFIG;");
+                _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
+                return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"SignalGenerationController : SaveToEEPROM() - Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("eepromread")]
+        public IActionResult ReadFromEEPROM()
+        {
+            try
+            {
+                _serialportService.SendData($"GET GENERATOR CONFIG;");
+                
+                return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"SignalGenerationController : SaveToEEPROM() - Error: {ex.Message}");
+            }
         }
     }
 }
