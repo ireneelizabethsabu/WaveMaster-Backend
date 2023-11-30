@@ -13,12 +13,11 @@ namespace WaveMaster_Backend.Controllers
     [ApiController]
     public class ConfigurationController : ControllerBase
     {
-        private readonly ISharedVariableService _sharedVariableService;
-        private readonly IReadService _readService;
-        
-        public ConfigurationController(ISharedVariableService sharedVariableService,IReadService readService)
+        private readonly ISerialPortService _serialportService;
+        private readonly IReadService _readService;       
+        public ConfigurationController(ISerialPortService serialportService,IReadService readService)
         {
-            _sharedVariableService = sharedVariableService;
+            _serialportService = serialportService;
             _readService = readService;
         }
 
@@ -38,7 +37,7 @@ namespace WaveMaster_Backend.Controllers
             catch (Exception ex)
             {
                 Log.Error("GetAvailablePortName() " + ex.ToString());
-                return StatusCode(500, $"Error retrieving port names: {ex.Message}");
+                return StatusCode(500, new {message = "Unable to fetch ports"});
             }
         }
 
@@ -65,16 +64,23 @@ namespace WaveMaster_Backend.Controllers
                     WriteTimeout = 500
                 };
                 _serialPort.Open();
-                _sharedVariableService.serialPort = _serialPort;
-
+                _serialportService.serialPort = _serialPort;
+                _serialportService.SendData("RESET;");
+                _serialportService.SendData("GENERATE SINE 100 3;");
+                //listen to the incoming data on serial port
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
+
+                return Ok(new { message = "ESTABLISHED CONNECTION" });
+            }
+            catch(ArgumentException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
             catch(Exception ex) {
-                Log.Error(ex.ToString());
-                return StatusCode(500, $"ConfigurationController : ConnectSerialPort() : {ex}");
-            }          
-            return Ok(new { message = "ConfigurationController : ConnectSerialPort() - Connected Successfully!" });
+                Log.Error(ex.Message);
+                return StatusCode(500,new {message = "Unable to connect to serial port, check if connected elsewhere."});
+            }                      
         }
 
         /// <summary>
@@ -86,15 +92,15 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("disconnect")]
         public IActionResult DisconnectSerialPort()
         {
-            _sharedVariableService.SendData("STOP CONNECTION;");
+            _serialportService.SendData("STOP CONNECTION;");
             try
             {
-                _sharedVariableService.serialPort.Close();
+                _serialportService.serialPort.Close();
             }
             catch (Exception ex)
             {
                 Log.Error(ex.ToString());
-                return StatusCode(500, $"ConfigurationController : DisconnectSerialPort() : {ex.Message}");
+                return StatusCode(500, $"Error disconnecting from serial port");
             }
             return Ok(new { message = "ConfigurationController : DisconnectSerialPort() - Connection Disconnected Successfully!" });
         }
