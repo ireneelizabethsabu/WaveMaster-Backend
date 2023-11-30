@@ -100,6 +100,11 @@ namespace WaveMaster_Backend.Controllers
             }                       
         }
 
+        /// <summary>
+        /// Save signal params to eeprom
+        /// </summary>
+        /// <param name="signalData">contains signal type, frequency and peak to peak of the wave to be generated</param>
+        /// <returns>Returns a status indicating success or failure of signal generation</returns>
         [HttpPost("eepromsave")]
         public IActionResult SaveToEEPROM([FromBody] SignalDataModel signalData)
         {
@@ -115,6 +120,10 @@ namespace WaveMaster_Backend.Controllers
             }
         }
 
+        /// <summary>
+        /// Read signal params from eeprom
+        /// </summary>
+        /// <returns>Returns a status indicating success or failure of signal generation</returns>
         [HttpGet("eepromread")]
         public IActionResult ReadFromEEPROM()
         {
