@@ -46,7 +46,7 @@ namespace WaveMaster_Backend.Services
             try 
             {
                 //SocketCommunication.SendData(command);
-                Console.WriteLine(command);
+                Console.WriteLine("sent command : " + command);
                 
                 serialPort.Write(command);
                 serialPort.DiscardOutBuffer();
