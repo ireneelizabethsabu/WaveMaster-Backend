@@ -70,7 +70,7 @@ namespace WaveMaster_Backend.Controllers
                 Thread rxThread = new Thread(_readService.DataReceivedHandler);
                 rxThread.Start();
 
-                return Ok(new { message = "ConfigurationController : ConnectSerialPort() - Connected Successfully!" });
+                return Ok(new { message = "ESTABLISHED CONNECTION" });
             }
             catch(ArgumentException ex)
             {
