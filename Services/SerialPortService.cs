@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.IO.Ports;
 using WaveMaster_Backend.HubConfig;
+using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Services
 {
@@ -14,6 +15,8 @@ namespace WaveMaster_Backend.Services
         public void SendData(string command);
 
         public int DataAcquisitionRate {  get; set; }
+        public void Connect(ConenctionParamsModel value);
+        public void Disconnect();
 
     }
     public class SerialPortService : ISerialPortService
@@ -37,6 +40,45 @@ namespace WaveMaster_Backend.Services
             _hub = hub;
            
         }
+
+        /// <summary>
+        /// Open serial port connection
+        /// </summary>
+        /// <param name="value">ConnectionParamsModel instance</param>
+        public void Connect(ConenctionParamsModel value)
+        {
+            try
+            {
+                serialPort = new SerialPort
+                {
+                    PortName = value.portName,
+                    BaudRate = value.baudRate,
+                    Parity = (Parity)Enum.Parse(typeof(Parity), value.parity, true),
+                    DataBits = value.dataBit,
+                    StopBits = (StopBits)value.stopBit,
+                    Handshake = (Handshake)Enum.Parse(typeof(Handshake), "None", true),
+                    ReadTimeout = 500,
+                    WriteTimeout = 500
+                };
+                serialPort.Open();
+                SendData(Commands.RESET);
+            }catch(Exception ex) { }
+            
+        }
+
+        /// <summary>
+        /// Disconnect serial port connection
+        /// </summary>
+        public void Disconnect()
+        {
+            try
+            {
+                SendData(Commands.CONNECTION_STOP);
+                serialPort.Close();
+            }catch (Exception ex) { }
+            
+        }
+
         /// <summary>
         /// Sends commands to the serial port. 
         /// </summary>
@@ -55,5 +97,7 @@ namespace WaveMaster_Backend.Services
                 _hub.Clients.All.SendAsync("captureControl", "DEVICE DISCONNECTED");
             }            
         }
+
+
     }
 }

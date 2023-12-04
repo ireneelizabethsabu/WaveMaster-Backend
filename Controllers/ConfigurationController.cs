@@ -53,21 +53,8 @@ namespace WaveMaster_Backend.Controllers
         {            
             try
             {
-                SerialPort _serialPort = new SerialPort
-                {
-                    PortName = value.portName,
-                    BaudRate = value.baudRate,
-                    Parity = (Parity)Enum.Parse(typeof(Parity), value.parity, true),
-                    DataBits = value.dataBit,
-                    StopBits = (StopBits)value.stopBit,
-                    Handshake = (Handshake)Enum.Parse(typeof(Handshake), "None", true),
-                    ReadTimeout = 500,
-                    WriteTimeout = 500
-                };
-                _serialPort.Open();
-                _serialportService.serialPort = _serialPort;
-                _serialportService.SendData(Commands.RESET);
-                
+                //Connect to serial port
+                _serialportService.Connect(value);
                 //listen to the incoming data on serial port
                 RxThread = new Thread(_readService.DataReceivedHandler);
                 RxThread.Start();
