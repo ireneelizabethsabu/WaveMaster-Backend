@@ -7,6 +7,7 @@ using System.Text;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
 using WaveMaster_Backend.ViewModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WaveMaster_Backend.Services
 {
@@ -83,6 +84,22 @@ namespace WaveMaster_Backend.Services
             Console.WriteLine("added observer");
             return new Unsubscriber(observers, observer);
         }
+
+
+        public async void WriteToHub(string hubEvent,string data){
+            await _hub.Clients.All.SendAsync(hubEvent, data);
+        }
+
+        public void AddToDataStore(int data)
+        {
+            PlotData pd = new PlotData
+            {
+                voltage = data * (3.3 / 4096),
+                time = DateTime.Now
+            };
+            dataStore.Add(pd);
+        }
+
         /// <summary>
         /// Handles the read operation from the serial port.
         /// </summary>
@@ -108,12 +125,13 @@ namespace WaveMaster_Backend.Services
                             Mode = "";
                         }
                         Console.WriteLine(asciiString);
-                        await _hub.Clients.All.SendAsync("test", asciiString);
+                        WriteToHub("test", asciiString);
+                     
                     }
                     else if(asciiString.Contains("Capture Stopped;"))
                     {
                         Log.Information("Capture Stopped; received");
-                        await _hub.Clients.All.SendAsync("captureControl", "STOP CAPTURE");
+                        WriteToHub("captureControl", "STOP CAPTURE");
                         Mode = "";
                     }else if (asciiString.Contains("Test Mode Started;"))
                     {
@@ -122,17 +140,17 @@ namespace WaveMaster_Backend.Services
                     else if (asciiString.Contains("DATA"))
                     {
                         Log.Information("Peak to peak and frequency data; received");
-                        await _hub.Clients.All.SendAsync("fetchData", asciiString);
+                        WriteToHub("fetchData", asciiString);
                     }
                     else if (asciiString.Contains("Capture Started;"))
                     {
                         Log.Information("Capture Started; received");
-                        await _hub.Clients.All.SendAsync("captureControl", "START CAPTURE");
+                        WriteToHub("captureControl", "START CAPTURE");
                         Mode = "CAPTURE";
                     }
                     else if (asciiString.Contains("EEPROM"))
                     {                        
-                        await _hub.Clients.All.SendAsync("defaultData", asciiString);
+                        WriteToHub("defaultData", asciiString);
                     }
                     else if(Mode.Equals("CAPTURE"))
                     {                                                             
@@ -145,13 +163,7 @@ namespace WaveMaster_Backend.Services
                         {
                             byteStore[1] = buffer[0];
                             int data = BitConverter.ToUInt16(byteStore, 0);
-
-                            PlotData pd = new PlotData
-                            {
-                                voltage = data * (3.3 / 4096),
-                                time = DateTime.Now
-                            };
-                            dataStore.Add(pd);
+                            AddToDataStore(data);
                         }
                         for (int i = flag; i < bufferLength ; i+=2)
                         {                                
@@ -159,13 +171,7 @@ namespace WaveMaster_Backend.Services
                             {
                                 flag = 0;
                                 int data = BitConverter.ToUInt16(buffer, i);
-                                PlotData pd = new PlotData
-                                {
-                                    voltage = data * (3.3 / 4096),
-                                    time = DateTime.Now
-                                };
-                                dataStore.Add(pd);
-                                //Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
+                                AddToDataStore(data);                               
                             }
                             else
                             {
@@ -187,13 +193,7 @@ namespace WaveMaster_Backend.Services
                                 {
                                     flag = 0;                                   
                                     int data = BitConverter.ToUInt16(buffer, i);
-                                    PlotData pd = new PlotData
-                                    {
-                                        voltage = data * (3.3 / 4096),
-                                        time = DateTime.Now
-                                    };
-                                    dataStore.Add(pd);
-                                    //Console.WriteLine($"{pd.voltage} - {pd.time.ToString("HH:mm:ss:fff")} ");
+                                    AddToDataStore(data);                                    
                                 }
                                 else
                                 {
