@@ -166,6 +166,7 @@ namespace WaveMaster_Backend.Services
                             AddToDataStore(data);
                         }
                         
+                        
                         for (int i = flag; i < bufferLength ; i+=2)
                         {                                
                             if(i+1 < bufferLength)

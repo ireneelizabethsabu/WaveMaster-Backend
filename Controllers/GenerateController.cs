@@ -65,7 +65,7 @@ namespace WaveMaster_Backend.Controllers
         {           
             try
             {             
-                _serialportService.SendData($"GENERATE START;");
+                _serialportService.SendData(Commands.GENERATE_START);
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
                 //file write method
                 _fileService.FileWrite(signalData);
@@ -91,7 +91,7 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData($"GENERATE STOP;");
+                _serialportService.SendData(Commands.GENERATE_STOP);
                 return Ok(new { message = "GenerateController : StopSignalGeneration() - success." });
             }
             catch(Exception ex)
@@ -110,7 +110,8 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData($"SET GENERATOR CONFIG;");
+              
+                _serialportService.SendData(Commands.SET_GENERATOR_CONFIG);
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
                 return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
             }
@@ -129,7 +130,7 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData($"GET GENERATOR CONFIG;");
+                _serialportService.SendData(Commands.GET_GENERATOR_CONFIG);
                 
                 return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
             }

@@ -70,7 +70,15 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData($"CAPTURE {command};");               
+                
+                if (command.Equals("START"))
+                {
+                    _serialportService.SendData(Commands.CAPTURE_START);
+                }
+                else if(command.Equals("STOP"))
+                {
+                    _serialportService.SendData(Commands.CAPTURE_STOP);
+                }
                 return Ok(new { message = "ConfigurationController : PostCommand() -  Successful!" });
             }
             catch (Exception ex)
@@ -92,8 +100,9 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                _serialportService.SendData("GET CAPTURE FREQUENCY;");
-                _serialportService.SendData("GET CAPTURE PEAKTOPEAK;");
+                
+                _serialportService.SendData(Commands.CAPTURE_FREQUENCY);
+                _serialportService.SendData(Commands.CAPTURE_PEAKTOPEAK);
 
                 return Ok(new { message = "Signal data requested successfully!" });
             }

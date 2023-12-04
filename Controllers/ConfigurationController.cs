@@ -15,7 +15,7 @@ namespace WaveMaster_Backend.Controllers
     {
         private readonly ISerialPortService _serialportService;
         private readonly IReadService _readService;  
-        Thread rxThread { get; set; }
+        Thread RxThread { get; set; }
         public ConfigurationController(ISerialPortService serialportService,IReadService readService)
         {
             _serialportService = serialportService;
@@ -66,11 +66,11 @@ namespace WaveMaster_Backend.Controllers
                 };
                 _serialPort.Open();
                 _serialportService.serialPort = _serialPort;
-                _serialportService.SendData("RESET;");
+                _serialportService.SendData(Commands.RESET);
                 
                 //listen to the incoming data on serial port
-                rxThread = new Thread(_readService.DataReceivedHandler);
-                rxThread.Start();
+                RxThread = new Thread(_readService.DataReceivedHandler);
+                RxThread.Start();
 
                 return Ok(new { message = "ESTABLISHED CONNECTION" });
             }
@@ -93,11 +93,11 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("disconnect")]
         public IActionResult DisconnectSerialPort()
         {
-            _serialportService.SendData("STOP CONNECTION;");
+            _serialportService.SendData(Commands.CONNECTION_STOP);
             try
             {
                 _serialportService.serialPort.Close();
-                rxThread.Abort();
+                RxThread.Abort();
             }
             catch (Exception ex)
             {
