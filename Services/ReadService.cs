@@ -165,6 +165,7 @@ namespace WaveMaster_Backend.Services
                             int data = BitConverter.ToUInt16(byteStore, 0);
                             AddToDataStore(data);
                         }
+                        
                         for (int i = flag; i < bufferLength ; i+=2)
                         {                                
                             if(i+1 < bufferLength)
@@ -187,6 +188,7 @@ namespace WaveMaster_Backend.Services
                         }
                         if(hasSync)
                         {
+
                             for (int i = startIndex + 6 ; i < bytesRead; i = i + 2)
                             {
                                 if (i + 1 < bytesRead)
@@ -215,6 +217,12 @@ namespace WaveMaster_Backend.Services
                     Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
                 }
             }           
+        }
+
+
+        public void processData(int startIndex,int bufferLength)
+        {
+
         }
         /// <summary>
         /// Notifies all observers with the current plot data.
