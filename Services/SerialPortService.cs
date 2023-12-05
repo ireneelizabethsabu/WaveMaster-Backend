@@ -10,22 +10,21 @@ namespace WaveMaster_Backend.Services
     /// </summary>
     public interface ISerialPortService
     {
-        SerialPort serialPort { get; set; }
         
+
         public void SendData(string command);
 
-        public int DataAcquisitionRate {  get; set; }
         public void Connect(ConenctionParamsModel value);
         public void Disconnect();
 
     }
     public class SerialPortService : ISerialPortService
     {
-        
-        public SerialPort serialPort{ get; set; }
+
+        public SerialPort serialPort { get; set; }
         public string ReceivedString { get; set; } = String.Empty;
 
-        public int DataAcquisitionRate { get; set; } = 1;
+        
 
         private readonly IHubContext<PlotDataHub> _hub;
 
@@ -38,7 +37,7 @@ namespace WaveMaster_Backend.Services
             IHubContext<PlotDataHub> hub)
         {
             _hub = hub;
-           
+
         }
 
         /// <summary>
@@ -62,8 +61,9 @@ namespace WaveMaster_Backend.Services
                 };
                 serialPort.Open();
                 SendData(Commands.RESET);
-            }catch(Exception ex) { }
-            
+            }
+            catch (Exception) { }
+
         }
 
         /// <summary>
@@ -75,8 +75,9 @@ namespace WaveMaster_Backend.Services
             {
                 SendData(Commands.CONNECTION_STOP);
                 serialPort.Close();
-            }catch (Exception ex) { }
-            
+            }
+            catch (Exception) { }
+
         }
 
         /// <summary>
@@ -85,17 +86,18 @@ namespace WaveMaster_Backend.Services
         /// <param name="command"> The command string to be sent</param>
         public void SendData(string command)
         {
-            try 
+            try
             {
                 //SocketCommunication.SendData(command);
                 Console.WriteLine("sent command : " + command);
-                
+
                 serialPort.Write(command);
                 serialPort.DiscardOutBuffer();
-            }catch(Exception ex)
+            }
+            catch (Exception)
             {
                 _hub.Clients.All.SendAsync("captureControl", "DEVICE DISCONNECTED");
-            }            
+            }
         }
 
 

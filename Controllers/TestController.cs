@@ -29,8 +29,8 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost]
         public IActionResult TestComponents([FromBody] string command)
         {
-            _serialportService.SendData(command);     
-            return Ok(new { message = "TestController : TestComponent() - Test data send success"});
+            _serialportService.SendData(command);
+            return Ok(new { message = "TestController : TestComponent() - Test data send success" });
         }
     }
 }

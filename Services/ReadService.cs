@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Serilog;
-using System.Diagnostics;
 using System.IO.Ports;
 using System.Net.Sockets;
 using System.Text;
 using WaveMaster_Backend.HubConfig;
 using WaveMaster_Backend.Models;
-using WaveMaster_Backend.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WaveMaster_Backend.Services
 {
@@ -26,7 +23,7 @@ namespace WaveMaster_Backend.Services
     /// <remarks>
     /// For adding observers for read service and also reading and processing data from the serial port.
     /// </remarks>
-    public class ReadService : IObservable<List<PlotData>>,IReadService
+    public class ReadService : IObservable<List<PlotData>>, IReadService
     {
         public string ReceivedString { get; set; } = "READ";
         public string Mode { get; set; } = "";
@@ -41,10 +38,10 @@ namespace WaveMaster_Backend.Services
         /// <param name="hub"> The hub service instance</param>
         /// <param name="serialPortService">The serial port instance</param>
         public ReadService(IHubContext<PlotDataHub> hub, ISerialPortService sharedVariableService)
-        { 
+        {
             observers = new List<IObserver<List<PlotData>>>();
             _hub = hub;
-           _serialPortService = sharedVariableService;
+            _serialPortService = sharedVariableService;
         }
         /// <summary>
         /// Implementation of IDisposable for unsubscribing observers from ReadService.
@@ -68,7 +65,7 @@ namespace WaveMaster_Backend.Services
             /// </summary>
             public void Dispose()
             {
-                if (! (_observer == null)) _observers.Remove(_observer);
+                if (!(_observer == null)) _observers.Remove(_observer);
             }
         }
 
@@ -79,14 +76,15 @@ namespace WaveMaster_Backend.Services
         /// <returns>An IDisposable to allow unsubscribing.</returns>
         public IDisposable Subscribe(IObserver<List<PlotData>> observer)
         {
-            if (! observers.Contains(observer))
+            if (!observers.Contains(observer))
                 observers.Add(observer);
             Console.WriteLine("added observer");
             return new Unsubscriber(observers, observer);
         }
 
 
-        public async void WriteToHub(string hubEvent,string data){
+        public async void WriteToHub(string hubEvent, string data)
+        {
             await _hub.Clients.All.SendAsync(hubEvent, data);
         }
 
@@ -108,14 +106,14 @@ namespace WaveMaster_Backend.Services
             SerialPort sp = _serialPortService.serialPort;
             int flag = 0;
             while (sp.IsOpen)
-            {                
+            {
                 try
                 {
                     var buffer = new byte[1024];
                     if (sp.BytesToRead == 0)
-                        continue;            
+                        continue;
                     int bytesRead = sp.BaseStream.Read(buffer, 0, 1024);
-                                    
+
                     string asciiString = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                     Console.WriteLine(asciiString);
                     if (Mode.Equals("TEST"))
@@ -126,14 +124,15 @@ namespace WaveMaster_Backend.Services
                         }
                         Console.WriteLine(asciiString);
                         WriteToHub("test", asciiString);
-                     
+
                     }
-                    else if(asciiString.Contains("Capture Stopped;"))
+                    else if (asciiString.Contains("Capture Stopped;"))
                     {
                         Log.Information("Capture Stopped; received");
                         WriteToHub("captureControl", "STOP CAPTURE");
                         Mode = "";
-                    }else if (asciiString.Contains("Test Mode Started;"))
+                    }
+                    else if (asciiString.Contains("Test Mode Started;"))
                     {
                         Mode = "TEST";
                     }
@@ -149,11 +148,11 @@ namespace WaveMaster_Backend.Services
                         Mode = "CAPTURE";
                     }
                     else if (asciiString.Contains("EEPROM"))
-                    {                        
+                    {
                         WriteToHub("defaultData", asciiString);
                     }
-                    else if(Mode.Equals("CAPTURE"))
-                    {                                                             
+                    else if (Mode.Equals("CAPTURE"))
+                    {
                         var byteStore = new byte[2];
                         bool hasSync = asciiString.Contains("SYNC;");
                         int startIndex = hasSync ? asciiString.IndexOf(";SYNC;") : 0;
@@ -165,38 +164,38 @@ namespace WaveMaster_Backend.Services
                             int data = BitConverter.ToUInt16(byteStore, 0);
                             AddToDataStore(data);
                         }
-                        
-                        
-                        for (int i = flag; i < bufferLength ; i+=2)
-                        {                                
-                            if(i+1 < bufferLength)
+
+
+                        for (int i = flag; i < bufferLength; i += 2)
+                        {
+                            if (i + 1 < bufferLength)
                             {
                                 flag = 0;
                                 int data = BitConverter.ToUInt16(buffer, i);
-                                AddToDataStore(data);                               
+                                AddToDataStore(data);
                             }
                             else
                             {
-                                flag =  1;
+                                flag = 1;
                                 byteStore[0] = buffer[i];
                             }
 
-                            if(dataStore.Count() > 200)
+                            if (dataStore.Count() > 200)
                             {
                                 NotifyObservers();
                                 dataStore.Clear();
                             }
                         }
-                        if(hasSync)
+                        if (hasSync)
                         {
 
-                            for (int i = startIndex + 6 ; i < bytesRead; i = i + 2)
+                            for (int i = startIndex + 6; i < bytesRead; i = i + 2)
                             {
                                 if (i + 1 < bytesRead)
                                 {
-                                    flag = 0;                                   
+                                    flag = 0;
                                     int data = BitConverter.ToUInt16(buffer, i);
-                                    AddToDataStore(data);                                    
+                                    AddToDataStore(data);
                                 }
                                 else
                                 {
@@ -211,20 +210,16 @@ namespace WaveMaster_Backend.Services
                             }
                         }
                     }
-                    
+
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
                 }
-            }           
+            }
         }
 
 
-        public void processData(int startIndex,int bufferLength)
-        {
-
-        }
         /// <summary>
         /// Notifies all observers with the current plot data.
         /// </summary>
@@ -233,7 +228,7 @@ namespace WaveMaster_Backend.Services
             Console.WriteLine(observers.Count());
             foreach (var observer in observers)
             {
-                observer.OnNext(new List<PlotData>(dataStore));                
+                observer.OnNext(new List<PlotData>(dataStore));
             }
         }
     }

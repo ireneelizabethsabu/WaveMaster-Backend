@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.IO.Ports;
 using WaveMaster_Backend.Services;
 using WaveMaster_Backend.ViewModels;
-using Serilog;
 
 namespace WaveMaster_Backend.Controllers
 {
@@ -14,9 +14,9 @@ namespace WaveMaster_Backend.Controllers
     public class ConfigurationController : ControllerBase
     {
         private readonly ISerialPortService _serialportService;
-        private readonly IReadService _readService;  
+        private readonly IReadService _readService;
         Thread RxThread { get; set; }
-        public ConfigurationController(ISerialPortService serialportService,IReadService readService)
+        public ConfigurationController(ISerialPortService serialportService, IReadService readService)
         {
             _serialportService = serialportService;
             _readService = readService;
@@ -38,7 +38,7 @@ namespace WaveMaster_Backend.Controllers
             catch (Exception ex)
             {
                 Log.Error("GetAvailablePortName() " + ex.ToString());
-                return StatusCode(500, new {message = "Unable to fetch ports"});
+                return StatusCode(500, new { message = "Unable to fetch ports" });
             }
         }
 
@@ -50,7 +50,7 @@ namespace WaveMaster_Backend.Controllers
         /// <returns>Returns status indicating successful connection or error.</returns>
         [HttpPost("connect")]
         public IActionResult ConnectSerialPort(ConenctionParamsModel value)
-        {            
+        {
             try
             {
                 //Connect to serial port
@@ -61,14 +61,15 @@ namespace WaveMaster_Backend.Controllers
 
                 return Ok(new { message = "ESTABLISHED CONNECTION" });
             }
-            catch(ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 return StatusCode(500, new { message = ex.Message });
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 Log.Error(ex.Message);
-                return StatusCode(500,new {message = "Unable to connect to serial port, check if connected elsewhere."});
-            }                      
+                return StatusCode(500, new { message = "Unable to connect to serial port, check if connected elsewhere." });
+            }
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace WaveMaster_Backend.Controllers
             _serialportService.SendData(Commands.CONNECTION_STOP);
             try
             {
-                _serialportService.serialPort.Close();
+                _serialportService.Disconnect();
                 RxThread.Abort();
             }
             catch (Exception ex)

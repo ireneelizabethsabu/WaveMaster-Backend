@@ -12,20 +12,16 @@ namespace WaveMaster_Backend.Controllers
     public class CaptureController : ControllerBase
     {
         private readonly ISerialPortService _serialportService;
-        private readonly IReadService _readService;
         private readonly IObserverService _observerService;
 
         /// <summary>
         /// Initializes an instance of Capture controller by injecting required dependencies. 
         /// </summary>
         /// <param name="serialportService"> The serial port service instance</param>
-        /// <param name="readService">The read service instance</param>
         /// <param name="observerService">observer service instance</param>
-        public CaptureController(ISerialPortService serialportService, IReadService readService
-            ,IObserverService observerService)
+        public CaptureController(ISerialPortService serialportService , IObserverService observerService)
         {
             _serialportService = serialportService;
-            _readService = readService;
             _observerService = observerService;
         }
 
@@ -70,12 +66,12 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                
+
                 if (command.Equals("START"))
                 {
                     _serialportService.SendData(Commands.CAPTURE_START);
                 }
-                else if(command.Equals("STOP"))
+                else if (command.Equals("STOP"))
                 {
                     _serialportService.SendData(Commands.CAPTURE_STOP);
                 }
@@ -86,7 +82,7 @@ namespace WaveMaster_Backend.Controllers
                 Log.Error($"Error sending command: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
-            
+
         }
 
         /// <summary>
@@ -100,18 +96,18 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-                
+
                 _serialportService.SendData(Commands.CAPTURE_FREQUENCY);
                 _serialportService.SendData(Commands.CAPTURE_PEAKTOPEAK);
 
                 return Ok(new { message = "Signal data requested successfully!" });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error($"Error getting signal data: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
-                    
+
         }
 
         /// <summary>
@@ -122,7 +118,6 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("rate")]
         public IActionResult SetDataAcquisitionRate([FromBody] int rate)
         {
-            _serialportService.DataAcquisitionRate = rate;
             return Ok(new { message = "ConfigurationController : PostRate() -  Successful!" });
         }
     }

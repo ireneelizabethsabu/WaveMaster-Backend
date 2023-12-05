@@ -20,7 +20,7 @@ namespace WaveMaster_Backend.Observers
         /// <param name="context">The WaveMasterDbContext instance.</param>
         public DbObserver(WaveMasterDbContext context)
         {
-            _context = context ?? 
+            _context = context ??
                 throw new ArgumentNullException(nameof(context));
         }
 
@@ -66,7 +66,8 @@ namespace WaveMaster_Backend.Observers
         {
             try
             {
-                await Task.Run(() => {
+                await Task.Run(() =>
+                {
                     _mutex.WaitOne();
                     _context.BulkInsert(dataStore);
                     _mutex.ReleaseMutex();
@@ -76,6 +77,6 @@ namespace WaveMaster_Backend.Observers
             {
                 Log.Error($"Error writing to db : {ex.Message}");
             }
-        }        
+        }
     }
 }

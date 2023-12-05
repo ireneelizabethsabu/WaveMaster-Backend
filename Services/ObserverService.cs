@@ -34,7 +34,7 @@ namespace WaveMaster_Backend.Services
         /// <param name="hubContext"> The hub service instance</param>
         /// <param name="context">DB Context instance</param>
         /// <param name="readService">The read service instance</param>
-        public ObserverService(IHubContext<PlotDataHub> hubContext, 
+        public ObserverService(IHubContext<PlotDataHub> hubContext,
             WaveMasterDbContext context,
             IReadService readService)
         {

@@ -78,6 +78,6 @@ namespace WaveMaster_Backend
             // Run the application.
             app.Run();
         }
-        
+
     }
 }

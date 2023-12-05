@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WaveMaster_Backend.Services;
@@ -33,7 +32,7 @@ namespace WaveMaster_Backend.Controllers
         /// </returns>
         [HttpGet]
         public IActionResult GetSignalSettings()
-        {           
+        {
             try
             {
                 var settings = _fileService.FileRead();
@@ -62,9 +61,9 @@ namespace WaveMaster_Backend.Controllers
         /// </returns>
         [HttpPost("start")]
         public IActionResult StartSignalGeneration([FromBody] SignalDataModel signalData)
-        {           
+        {
             try
-            {             
+            {
                 _serialportService.SendData(Commands.GENERATE_START);
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
                 //file write method
@@ -73,14 +72,14 @@ namespace WaveMaster_Backend.Controllers
 
                 return Ok(new { message = $"DEVICE GENERATING {signalData.SignalType.ToUpper()} SIGNAL" });
             }
-            catch(IOException ex)
-            {         
+            catch (IOException ex)
+            {
                 return StatusCode(500, $"GenerateController : StartSignalGeneration() - {ex.Message}");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"GenerateController : StartSignalGeneration() - Error writing JSON to file - {ex.Message}");
-            }           
+            }
         }
 
         /// <summary>
@@ -94,10 +93,10 @@ namespace WaveMaster_Backend.Controllers
                 _serialportService.SendData(Commands.GENERATE_STOP);
                 return Ok(new { message = "GenerateController : StopSignalGeneration() - success." });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"SignalGenerationController : StopSignalGeneration() - Error: {ex.Message}");
-            }                       
+            }
         }
 
         /// <summary>
@@ -110,7 +109,7 @@ namespace WaveMaster_Backend.Controllers
         {
             try
             {
-              
+
                 _serialportService.SendData(Commands.SET_GENERATOR_CONFIG);
                 _serialportService.SendData($"GENERATE {signalData.SignalType.ToUpper()} {signalData.Frequency} {signalData.PeakToPeak};");
                 return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
@@ -131,7 +130,7 @@ namespace WaveMaster_Backend.Controllers
             try
             {
                 _serialportService.SendData(Commands.GET_GENERATOR_CONFIG);
-                
+
                 return Ok(new { message = "GenerateController : SaveToEEPROM() - success." });
             }
             catch (Exception ex)

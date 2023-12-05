@@ -33,7 +33,7 @@ namespace WaveMaster_Backend.Services
             try
             {
                 string jsonString = JsonSerializer.Serialize(signalData);
-                File.WriteAllText(_filePath, jsonString, Encoding.UTF8);               
+                File.WriteAllText(_filePath, jsonString, Encoding.UTF8);
             }
             catch (IOException ex)
             {
@@ -54,14 +54,14 @@ namespace WaveMaster_Backend.Services
         public SignalDataModel FileRead()
         {
             try
-            {                
-                string jsonString = File.ReadAllText(_filePath,Encoding.UTF8);
+            {
+                string jsonString = File.ReadAllText(_filePath, Encoding.UTF8);
                 return JsonSerializer.Deserialize<SignalDataModel>(jsonString);
-            }           
+            }
             catch (IOException ex)
             {
                 throw new IOException("Error reading from file", ex);
-            }            
+            }
             catch (JsonException ex)
             {
                 throw new JsonException("Error parsing json", ex);
