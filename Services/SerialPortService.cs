@@ -10,7 +10,7 @@ namespace WaveMaster_Backend.Services
     /// </summary>
     public interface ISerialPortService
     {
-        
+        SerialPort serialPort { get; set; }
 
         public void SendData(string command);
 
