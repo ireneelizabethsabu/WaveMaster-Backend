@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Serilog;
+using System;
 using System.IO.Ports;
+using System.Text;
 using WaveMaster_Backend.HubConfig;
+using WaveMaster_Backend.Models;
 using WaveMaster_Backend.ViewModels;
 
 namespace WaveMaster_Backend.Services
@@ -10,34 +14,27 @@ namespace WaveMaster_Backend.Services
     /// </summary>
     public interface ISerialPortService
     {
-        SerialPort serialPort { get; set; }
-
         public void SendData(string command);
-
         public void Connect(ConenctionParamsModel value);
         public void Disconnect();
-
+        public void DataReceivedHandler();
+        
     }
     public class SerialPortService : ISerialPortService
-    {
-
-        public SerialPort serialPort { get; set; }
-        public string ReceivedString { get; set; } = String.Empty;
-
-        
-
+    {      
         private readonly IHubContext<PlotDataHub> _hub;
+        private static SerialPort serialPort { get; set; }
 
-        public int count = 0;
+        private readonly IDataService _dataService;
         /// <summary>
         /// Initializes an instance of Serial Port service by injecting required dependencies. 
         /// </summary>
         /// <param name="hub"> The hub service instance</param>
         public SerialPortService(
-            IHubContext<PlotDataHub> hub)
+            IHubContext<PlotDataHub> hub, IDataService dataService)
         {
             _hub = hub;
-
+            _dataService = dataService;
         }
 
         /// <summary>
@@ -99,7 +96,32 @@ namespace WaveMaster_Backend.Services
                 _hub.Clients.All.SendAsync("captureControl", "DEVICE DISCONNECTED");
             }
         }
+        
+        /// <summary>
+        /// Handles the read operation from the serial port.
+        /// </summary>
+        public void DataReceivedHandler()
+        {
+            
+            while (serialPort.IsOpen)
+            {
+                try
+                {
+                    var buffer = new byte[1024];
+                    if (serialPort.BytesToRead == 0)
+                        continue;
+                    int bytesRead = serialPort.BaseStream.Read(buffer, 0, 1024);
 
-
+                    string asciiString = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine(asciiString);
+                    _dataService.handleData(asciiString,buffer,bytesRead);
+                    
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss:fff")} RxCommandsAsync: Exception {ex}");
+                }
+            }
+        }
     }
 }

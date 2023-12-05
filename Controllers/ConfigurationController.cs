@@ -14,12 +14,10 @@ namespace WaveMaster_Backend.Controllers
     public class ConfigurationController : ControllerBase
     {
         private readonly ISerialPortService _serialportService;
-        private readonly IReadService _readService;
-        Thread RxThread { get; set; }
-        public ConfigurationController(ISerialPortService serialportService, IReadService readService)
+        private static Thread RxThread { get; set; }
+        public ConfigurationController(ISerialPortService serialportService)
         {
             _serialportService = serialportService;
-            _readService = readService;
         }
 
         /// <summary>
@@ -56,7 +54,7 @@ namespace WaveMaster_Backend.Controllers
                 //Connect to serial port
                 _serialportService.Connect(value);
                 //listen to the incoming data on serial port
-                RxThread = new Thread(_readService.DataReceivedHandler);
+                RxThread = new Thread(_serialportService.DataReceivedHandler);
                 RxThread.Start();
 
                 return Ok(new { message = "ESTABLISHED CONNECTION" });
@@ -81,16 +79,19 @@ namespace WaveMaster_Backend.Controllers
         [HttpPost("disconnect")]
         public IActionResult DisconnectSerialPort()
         {
-            _serialportService.SendData(Commands.CONNECTION_STOP);
+            //_serialportService.SendData(Commands.CONNECTION_STOP);
             try
             {
                 _serialportService.Disconnect();
-                RxThread.Abort();
             }
             catch (Exception ex)
             {
                 Log.Error(ex.ToString());
                 return StatusCode(500, $"Error disconnecting from serial port");
+            }
+            finally
+            {
+                RxThread.Join();
             }
             return Ok(new { message = "ConfigurationController : DisconnectSerialPort() - Connection Disconnected Successfully!" });
         }

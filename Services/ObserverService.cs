@@ -24,7 +24,8 @@ namespace WaveMaster_Backend.Services
     {
         private readonly IHubContext<PlotDataHub> _hubContext;
         private readonly WaveMasterDbContext _context;
-        private readonly IReadService _readService;
+        
+        private readonly IDataService _dataService;
         public DbObserver DbObserver { get; set; }
         public HubObserver HubObserver { get; set; }
 
@@ -36,11 +37,11 @@ namespace WaveMaster_Backend.Services
         /// <param name="readService">The read service instance</param>
         public ObserverService(IHubContext<PlotDataHub> hubContext,
             WaveMasterDbContext context,
-            IReadService readService)
+            IDataService dataService)
         {
             _hubContext = hubContext;
             _context = context;
-            _readService = readService;
+            _dataService = dataService;
             DbObserver = new DbObserver(_context);
             HubObserver = new HubObserver(_hubContext);
         }
@@ -50,9 +51,9 @@ namespace WaveMaster_Backend.Services
         /// </summary>
         public void SubscribeObservers()
         {
-            HubObserver.Subscribe(_readService); // Subscribe HubObserver
+            HubObserver.Subscribe(_dataService); // Subscribe HubObserver
             Log.Information("Hub Observer Subscribed");
-            DbObserver.Subscribe(_readService); // Subscribe DbObserver
+            DbObserver.Subscribe(_dataService); // Subscribe DbObserver
             Log.Information("Db Observer Subscribed");
         }
 

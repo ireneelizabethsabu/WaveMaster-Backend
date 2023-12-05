@@ -10,7 +10,7 @@ namespace WaveMaster_Backend.Observers
     /// </summary>
     public class DbObserver : IObserver<List<PlotData>>
     {
-        private IDisposable? _unsubscriber;
+        private static IDisposable? _unsubscriber;
         private readonly WaveMasterDbContext _context;
         private readonly Mutex _mutex = new(false);
 
@@ -20,7 +20,7 @@ namespace WaveMaster_Backend.Observers
         /// <param name="context">The WaveMasterDbContext instance.</param>
         public DbObserver(WaveMasterDbContext context)
         {
-            _context = context ??
+            _context = context ?? 
                 throw new ArgumentNullException(nameof(context));
         }
 
@@ -28,7 +28,7 @@ namespace WaveMaster_Backend.Observers
         /// Subscribes the DbObserver to an IReadService provider.
         /// </summary>
         /// <param name="provider">The IReadService provider.</param>
-        public virtual void Subscribe(IReadService provider)
+        public virtual void Subscribe(IDataService provider)
         {
             if (provider != null)
             {
@@ -66,8 +66,7 @@ namespace WaveMaster_Backend.Observers
         {
             try
             {
-                await Task.Run(() =>
-                {
+                await Task.Run(() => {
                     _mutex.WaitOne();
                     _context.BulkInsert(dataStore);
                     _mutex.ReleaseMutex();
@@ -77,6 +76,6 @@ namespace WaveMaster_Backend.Observers
             {
                 Log.Error($"Error writing to db : {ex.Message}");
             }
-        }
+        }        
     }
 }

@@ -28,7 +28,7 @@ namespace WaveMaster_Backend
 
             // Add Entity Framework DbContext to the container with a singleton lifetime.
             builder.Services.AddDbContext<WaveMasterDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")), ServiceLifetime.Singleton);
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr")),ServiceLifetime.Singleton);
 
             // Add API Explorer for endpoints.
             builder.Services.AddEndpointsApiExplorer();
@@ -38,9 +38,9 @@ namespace WaveMaster_Backend
 
             // Add singleton services for various functionalities.
             builder.Services.AddSingleton<ISerialPortService, SerialPortService>();
-            builder.Services.AddSingleton<IReadService, ReadService>();
-            builder.Services.AddSingleton<IObserverService, ObserverService>();
-            builder.Services.AddSingleton<IFileService, FileService>();
+            builder.Services.AddScoped<IObserverService, ObserverService>();
+            builder.Services.AddScoped<IFileService, FileService>();
+            builder.Services.AddSingleton<IDataService, DataService>();
             builder.Services.AddSignalR();
 
             // Build the application.

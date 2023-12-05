@@ -11,7 +11,7 @@ namespace WaveMaster_Backend.Observers
     /// </summary>
     public class HubObserver : IObserver<List<PlotData>>
     {
-        private IDisposable? _unsubscriber;
+        private static IDisposable? _unsubscriber;
         private readonly IHubContext<PlotDataHub> _hub;
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace WaveMaster_Backend.Observers
         /// Subscribes the HubObserver to an IReadService provider.
         /// </summary>
         /// <param name="provider">The IReadService provider.</param>
-        public virtual void Subscribe(IReadService provider)
+        public virtual void Subscribe(IDataService provider)
         {
             if (provider != null)
             {
@@ -40,7 +40,7 @@ namespace WaveMaster_Backend.Observers
         /// </summary>
         public virtual void Unsubscribe()
         {
-            _unsubscriber?.Dispose();
+            _unsubscriber.Dispose();
         }
 
         /// <summary>
